@@ -21,3 +21,100 @@ For more, check out the [Contributing Guide](CONTRIBUTING.md).
 ## License
 
 [ISC](LICENSE) © 2020 Rebecca Vest <rvest@healthline.com>
+
+## EXAMPLE RESPONSE
+```{
+  "data": {
+    "node": {
+      "id": "...",
+      "column": {
+        "id": "...",
+        "name": "To do"
+      },
+      "content": {
+        "projectCards": {
+          "nodes": [
+            {
+              "id": "...=",
+              "column": {
+                "id": "...",
+                "name": "To do"
+              },
+              "project": {
+                "id": "...",
+                "columns": {
+                  "nodes": [
+                    {
+                      "id": "...",
+                      "name": "To do"
+                    },
+                    {
+                      "id": "...",
+                      "name": "In progress"
+                    },
+                    {
+                      "id": "...",
+                      "name": "Review in progress"
+                    },
+                    {
+                      "id": "...",
+                      "name": "Reviewer approved"
+                    },
+                    {
+                      "id": "...",
+                      "name": "Done"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "...",
+              "column": {
+                "id": "...",
+                "name": "To do"
+              },
+              "project": {
+                "id": "...",
+                "columns": {
+                  "nodes": [
+                    {
+                      "id": "...",
+                      "name": "To do"
+                    },
+                    {
+                      "id": "...",
+                      "name": "In progress"
+                    },
+                    {
+                      "id": "...",
+                      "name": "Review in progress"
+                    },
+                    {
+                      "id": "...",
+                      "name": "Reviewer approved"
+                    },
+                    {
+                      "id": "...",
+                      "name": "Done"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "...",
+              "column": null,
+              "project": {
+                "id": "...",
+                "columns": {
+                  "nodes": []
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}```
