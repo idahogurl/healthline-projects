@@ -69,14 +69,11 @@ module.exports = (app) => {
     const promises = projectCards
       .filter((card) => card.id !== projectCard.id)
       .map((card) => {
-        console.log("card", card);
         // don't move if card's column name matches event card's column name
         if (card.column && card.column.name !== columnName) {
           // get the columns of the card's project
           const { nodes: columns } = card.project.columns;
-          console.log("columns", columns);
           const matchingColumn = columns.find((col) => col.name === columnName);
-          console.log("matchingColumn", matchingColumn);
 
           if (matchingColumn) {
             // assign that column to the project card
