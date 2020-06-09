@@ -1,8 +1,8 @@
 {
   "name": "healthline-projects",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Synchronizes project cards assigned to multiple project boards",
+  "description": "Synchronizes GitHub project cards with Zube",
   "author": "Rebecca Vest <rvest@healthline.com>",
   "license": "ISC",
   "repository": "https://github.com/healthline/healthline-projects.git",
