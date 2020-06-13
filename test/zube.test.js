@@ -1,7 +1,6 @@
 /* eslint-env jest */
 const { getAccessJwt, zubeRequest } = require('../zube');
 const zubeCard = require('./fixtures/zube/card.json');
-const zubeUserToken = require('./fixtures/zube/user.token.json');
 
 test('zube request', async () => {
   const endpoint = 'projects/16987/cards?search=MNT program pages show "Healthline"';
@@ -13,5 +12,5 @@ test('zube request', async () => {
 
 test('get access token', async () => {
   const accessToken = await getAccessJwt();
-  expect(accessToken).toBe(zubeUserToken.access_token);
+  expect(accessToken).toBe('test');
 });

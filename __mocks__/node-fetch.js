@@ -5,16 +5,25 @@ const getProjectColumns = require('../test/fixtures/github/project.columns.json'
 const getProjectCard = require('../test/fixtures/github/project.card.json');
 const getProjectCardNoZube = require('../test/fixtures/github/project.card.no.zube.json');
 const getProject = require('../test/fixtures/github/project.json');
-const moveProjectCard = require('../test/fixtures/github/move.project.card.json');
+const getLabel = require('../test/fixtures/github/label.json');
 
 const fixtures = {
-  'query getProjectColumns($id: ID!, $project: String!)': getProjectColumns,
-  'query getProjectCard($id: ID!)': {
+  'query getProjectColumns': getProjectColumns,
+  'query getProjectCard': {
     1: getProjectCardNoZube,
     2: getProjectCard,
   },
-  'query getProjectFromIssue($id: ID!)': getProject,
-  'mutation moveProjectCard($input: MoveProjectCardInput!)': moveProjectCard,
+  'query getProjectFromIssue': getProject,
+  'query getLabel': getLabel,
+  'mutation moveProjectCard': {
+    clientMutationId: '12345',
+  },
+  'mutation removeLabel': {
+    clientMutationId: '12345',
+  },
+  'mutation addLabel': {
+    clientMutationId: '12345',
+  },
 };
 
 module.exports = {

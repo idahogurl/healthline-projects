@@ -15,6 +15,7 @@ query getProjectCard($id: ID!) {
         ... on Issue {
           id
           title
+          number
           labels(first: 10) {
             nodes {
               id

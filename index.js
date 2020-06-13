@@ -2,6 +2,7 @@ const initRollbar = require('./rollbar');
 const { getAccessJwt, zubeRequest } = require('./zube');
 const { ADD_PROJECT_CARD, MOVE_PROJECT_CARD, GET_PROJECT_CARD } = require('./graphql/project-card');
 const { GET_PROJECT_FROM_ISSUE, GET_PROJECT_COLUMNS } = require('./graphql/project');
+const { GET_LABEL, ADD_LABEL, REMOVE_LABEL } = require('./graphql/label');
 
 require('dotenv').config();
 
@@ -11,6 +12,7 @@ function onError(e, context) {
   if (process.env.NODE_ENV === 'prod') {
     rollbar.error(e, context.payload, { level: 'info' });
   } else {
+    // eslint-disable-next-line no-console
     console.error(e, context.payload);
   }
   throw e;
@@ -20,6 +22,7 @@ function logInfo(s) {
   if (process.env.NODE_ENV === 'prod') {
     rollbar.info(s);
   } else {
+    // eslint-disable-next-line no-console
     console.log(s);
   }
 }
@@ -31,11 +34,11 @@ async function getZubeCard(context, accessJwt) {
   // find the Zube card
   const search = title.split(' ').slice(0, 5).join(' ');
   // get first 5 words to speed up request
-  const { data } = await zubeRequest({
+  const params = {
     endpoint: `projects/${process.env.ZUBE_PROJECT_ID}/cards?search=${search}`,
     accessJwt,
-  });
-
+  };
+  const { data } = await zubeRequest(params);
   // find issue in Zube cards
   const zubeCard = data
     .filter((d) => d.github_issue !== null)
@@ -55,17 +58,17 @@ async function addCard(context) {
   const zubeCard = await getZubeCard(context, accessJwt);
 
   if (zubeCard) {
-    const { workspace_id: wordspaceId, category_name: category, priority } = zubeCard;
+    const { workspace_id: workspaceId, category_name: category, priority } = zubeCard;
 
     // get Zube workspace details
     const workspace = await zubeRequest({
-      endpoint: `workspaces/${wordspaceId}`,
+      endpoint: `workspaces/${workspaceId}`,
       accessJwt,
     });
 
     const {
       node_id: repoId,
-      name: repo,
+      name: repoName,
       owner: { login },
     } = repository;
 
@@ -91,11 +94,20 @@ async function addCard(context) {
 
       // add priority label
       if (priority) {
-        await context.github.issues.addLabel({
+        const {
+          repository: {
+            labels: { nodes: labelNodes },
+          },
+        } = await context.github.graphql(GET_LABEL, {
+          name: repoName,
           owner: login,
-          repo,
-          issue_number: number,
-          labels: `P${priority}`,
+          search: `P${priority}`,
+        });
+
+        const [label] = labelNodes;
+        await context.github.graphql(ADD_LABEL, {
+          labelableId: issueId,
+          labelIds: [label.id],
         });
       }
     } else {
@@ -125,7 +137,7 @@ async function addLabel(context) {
   const { repository } = context.payload;
 
   const {
-    name: repo,
+    name: repoName,
     owner: { login },
   } = repository;
 
@@ -144,30 +156,35 @@ async function addLabel(context) {
     if (currentLabel && currentLabel.name === newLabel) {
       // do not remove since issue already has label assigned
     } else {
-      // await context.github.issues.removeLabel({
-      //   owner: login,
-      //   repo,
-      //   issue_number: issue.number,
-      //   name: currentLabel.name,
-      // });
-      // await context.github.issues.addLabel({
-      //   owner: login,
-      //   repo,
-      //   issue_number: issue.number,
-      //   labels: newLabel,
-      // });
-      await context.github.issues.setLabels({
+      // get the matching label
+      const {
+        repository: {
+          labels: { nodes: labelNodes },
+        },
+      } = await context.github.graphql(GET_LABEL, {
+        name: repoName,
         owner: login,
-        repo,
-        issue_number: issue.number,
-        labels: labels.map((l) => l.name),
+        search: `[zube]: ${columnName}`,
+      });
+
+      if (currentLabel) {
+        await context.github.graphql(REMOVE_LABEL, {
+          labelableId: issue.id,
+          labelIds: [currentLabel.id],
+        });
+      }
+
+      const [label] = labelNodes;
+      await context.github.graphql(ADD_LABEL, {
+        labelableId: issue.id,
+        labelIds: [label.id],
       });
     }
   }
 }
 
 /**
- * This is the main entrypoint to your Probot app
+ * This is the main entry point to your Probot app
  * @param {import('probot').Application} app
  */
 module.exports = (app) => {
