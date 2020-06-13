@@ -3,10 +3,10 @@ query getProjectFromIssue($id: ID!) {
   node(id: $id) {
     id
     ... on Issue {
+      number
       projectCards(first: 1) {
         nodes {
           id
-          number
           column {
             id
             name
@@ -27,7 +27,7 @@ query getProjectFromIssue($id: ID!) {
 `;
 
 const GET_PROJECT_COLUMNS = `
-query getLabel($id: ID!, $project: String!) {
+query getProjectColumns($id: ID!, $project: String!) {
   node(id: $id) {
     id
     ... on Repository {

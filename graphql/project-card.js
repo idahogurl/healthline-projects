@@ -1,11 +1,15 @@
 const GET_PROJECT_CARD = `
-query getCardInfo($id: ID!) {
+query getProjectCard($id: ID!) {
   node(id: $id) {
     id
     ... on ProjectCard {
       column {
         id
         name
+        project {
+          id
+          name
+        }
       }
       content {
         ... on Issue {

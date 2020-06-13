@@ -1,0 +1,41 @@
+{
+  "data": {
+    "node": {
+      "id": "MDEwOlJlcG9zaXRvcnkxNDAyMzY4Mzg=",
+      "projects": {
+        "nodes": [
+          {
+            "columns": {
+              "nodes": [
+                {
+                  "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzIx",
+                  "name": "Inbox"
+                },
+                {
+                  "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzIa",
+                  "name": "Next"
+                },
+                {
+                  "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzIy",
+                  "name": "In progress"
+                },
+                {
+                  "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzIz",
+                  "name": "In review"
+                },
+                {
+                  "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzI0",
+                  "name": "Reviewer approved"
+                },
+                {
+                  "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzI1",
+                  "name": "Done"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+    "data": {
+      "node": {
+        "id": "MDExOlByb2plY3RDYXJkMzkyMDc2MTE=",
+        "column": {
+          "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzIy",
+          "name": "In progress",
+          "project": {
+            "id": "MDc6UHJvamVjdDQ2Mjc2NDQ=",
+            "name": "Team Board"
+          }
+        },
+        "content": {
+          "id": "MDU6SXNzdWU2Mjc4MDQ0ODE=",
+          "number": 9818,
+          "title": "Test Issue",
+          "labels": {
+            "nodes": [
+              {
+                "id": "MDU6TGFiZWwyMTI0MzQzNTIz",
+                "name": "[zube]: In Progress"
+              },
+              {
+                "id": "MDU6TGFiZWw5ODc5MzM5NjM=",
+                "name": "bug"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }

@@ -1,55 +1,51 @@
-const nock = require('nock')
+// const issueCreatedBody = { body: 'Thanks for opening this issue!' };
+/* eslint-env jest, node */
+const nock = require('nock');
+const { Probot, GitHubAPI } = require('probot');
+const fs = require('fs');
+const path = require('path');
+
 // Requiring our app implementation
-const myProbotApp = require('..')
-const { Probot } = require('probot')
+const myProbotApp = require('..');
 // Requiring our fixtures
-const payload = require('./fixtures/issues.opened')
-const issueCreatedBody = { body: 'Thanks for opening this issue!' }
-const fs = require('fs')
-const path = require('path')
+const payload = require('./fixtures/github/issues.opened');
 
 describe('My Probot app', () => {
-  let probot
-  let mockCert
+  let probot;
+  let mockCert;
 
   beforeAll((done) => {
     fs.readFile(path.join(__dirname, 'fixtures/mock-cert.pem'), (err, cert) => {
-      if (err) return done(err)
-      mockCert = cert
-      done()
-    })
-  })
+      if (err) return done(err);
+      mockCert = cert;
+      done();
+    });
+  });
 
   beforeEach(() => {
-    nock.disableNetConnect()
-    probot = new Probot({ id: 123, cert: mockCert })
+    nock.disableNetConnect();
+    probot = new Probot({ id: 123, cert: mockCert });
     // Load our app into probot
-    probot.load(myProbotApp)
-  })
+    probot.load(myProbotApp);
+  });
 
-  test('creates a comment when an issue is opened', async () => {
-    // Test that we correctly return a test token
-    nock('https://api.github.com')
-      .post('/app/installations/2/access_tokens')
-      .reply(200, { token: 'test' })
+  test('issues.opened', async () => {
+    await probot.receive({ name: 'issues', payload });
+  });
 
-    // Test that a comment is posted
-    nock('https://api.github.com')
-      .post('/repos/hiimbex/testing-things/issues/1/comments', (body) => {
-        expect(body).toMatchObject(issueCreatedBody)
-        return true
-      })
-      .reply(200)
+  test('issues.labeled', async () => {
+    await probot.receive({ name: 'issues', payload });
+  });
 
-    // Receive a webhook event
-    await probot.receive({ name: 'issues', payload })
-  })
+  test('project_card.created', async () => {
+    await probot.receive({ name: 'project_card', payload });
+  });
 
   afterEach(() => {
-    nock.cleanAll()
-    nock.enableNetConnect()
-  })
-})
+    nock.cleanAll();
+    nock.enableNetConnect();
+  });
+});
 
 // For more information about testing with Jest see:
 // https://facebook.github.io/jest/
