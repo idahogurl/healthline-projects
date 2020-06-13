@@ -1,6 +1,11 @@
 {
-    "label": "",
+    "action": "labeled",
+    "label": {
+        "name": "[zube]: Next"
+    },
     "issue": {
-        "node_id": ""
+        "node_id": "",
+        "title": "MNT program pages show \"Healthline\" in title",
+        "number": 9818
     }
 }

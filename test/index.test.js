@@ -1,14 +1,16 @@
 // const issueCreatedBody = { body: 'Thanks for opening this issue!' };
 /* eslint-env jest, node */
 const nock = require('nock');
-const { Probot, GitHubAPI } = require('probot');
+const { Probot } = require('probot');
 const fs = require('fs');
 const path = require('path');
 
 // Requiring our app implementation
 const myProbotApp = require('..');
 // Requiring our fixtures
-const payload = require('./fixtures/github/issues.opened');
+const projectCardCreated = require('./fixtures/github/project_card.created.json');
+const projectCardMoved = require('./fixtures/github/project_card.moved.json');
+const issuesLabeled = require('./fixtures/github/issues.labeled.json');
 
 describe('My Probot app', () => {
   let probot;
@@ -29,16 +31,23 @@ describe('My Probot app', () => {
     probot.load(myProbotApp);
   });
 
-  test('issues.opened', async () => {
-    await probot.receive({ name: 'issues', payload });
-  });
-
   test('issues.labeled', async () => {
-    await probot.receive({ name: 'issues', payload });
+    await probot.receive({ name: 'issues', payload: issuesLabeled });
   });
 
-  test('project_card.created', async () => {
-    await probot.receive({ name: 'project_card', payload });
+  test('project_card.created no Zube label', async () => {
+    projectCardCreated.project_card.node_id = 1;
+    await probot.receive({ name: 'project_card', payload: projectCardCreated });
+  });
+
+  test('project_card.created has Zube label', async () => {
+    projectCardCreated.project_card.node_id = 2;
+    await probot.receive({ name: 'project_card', payload: projectCardCreated });
+  });
+
+  test('project_card.moved', async () => {
+    projectCardMoved.project_card.node_id = 2;
+    await probot.receive({ name: 'project_card', payload: projectCardMoved });
   });
 
   afterEach(() => {

@@ -2,7 +2,6 @@ const initRollbar = require('./rollbar');
 const { getAccessJwt, zubeRequest } = require('./zube');
 const { ADD_PROJECT_CARD, MOVE_PROJECT_CARD, GET_PROJECT_CARD } = require('./graphql/project-card');
 const { GET_PROJECT_FROM_ISSUE, GET_PROJECT_COLUMNS } = require('./graphql/project');
-const project = require('./graphql/project');
 
 require('dotenv').config();
 
@@ -10,9 +9,9 @@ const rollbar = initRollbar();
 
 function onError(e, context) {
   if (process.env.NODE_ENV === 'prod') {
-    rollbar.error(e, context, { level: 'info' });
+    rollbar.error(e, context.payload, { level: 'info' });
   } else {
-    console.error(e, context);
+    console.error(e, context.payload);
   }
   throw e;
 }
@@ -24,12 +23,10 @@ function logInfo(s) {
     console.log(s);
   }
 }
-async function getZubeCard(context) {
+async function getZubeCard(context, accessJwt) {
   const {
     issue: { title, number },
   } = context.payload;
-
-  const accessJwt = await getAccessJwt();
 
   // find the Zube card
   const search = title.split(' ').slice(0, 5).join(' ');
@@ -111,12 +108,10 @@ async function addCard(context) {
 
 async function getIssueFromCard(context) {
   const { project_card: projectCardNode } = context.payload;
-
   // get column of project card
   const { node: projectCard } = await context.github.graphql(GET_PROJECT_CARD, {
     id: projectCardNode.node_id,
   });
-
   // get the column & issue from event's project card
   const { column, content: issue } = projectCard;
 
@@ -140,7 +135,9 @@ async function addLabel(context) {
       issue,
       column: { name: columnName },
     } = result;
-    const { nodes: labels } = issue;
+    const {
+      labels: { nodes: labels },
+    } = issue;
     // find Zube label in issue's assigned labels
     const newLabel = `[zube]: ${columnName}`;
     const currentLabel = labels.find((l) => l.name.includes('[zube]'));
@@ -202,7 +199,6 @@ module.exports = (app) => {
           } = cardNode;
           const columnName = label.name.toLowerCase().replace('[zube]: ', '');
           const matchingColumn = columns.find((c) => c.name.toLowerCase() === columnName);
-
           if (matchingColumn) {
             if (column && column.id === matchingColumn.id) {
               // do not move if current column is already assigned to matching column
@@ -227,17 +223,19 @@ module.exports = (app) => {
 
   app.on('project_card.created', async (context) => {
     try {
-      const result = getIssueFromCard(context);
+      const result = await getIssueFromCard(context);
       if (result) {
         const { issue } = result;
-        const { node: labels } = issue;
+        const {
+          labels: { nodes: labels },
+        } = issue;
         const currentLabel = labels.find((l) => l.name.includes('[zube]'));
         if (currentLabel) {
           // already has a Zube label, do nothing
         } else {
           const accessJwt = await getAccessJwt();
           // card created in GitHub, move Zube ticket from triage to matching board & category
-          const zubeCard = await getZubeCard(context, accessJwt);
+          const zubeCard = await getZubeCard({ payload: { issue } }, accessJwt);
           const {
             name: columnName,
             project: { name: projectName },
