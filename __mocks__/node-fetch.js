@@ -5,6 +5,7 @@ const getProjectColumns = require('../test/fixtures/github/project.columns.json'
 const getProjectCard = require('../test/fixtures/github/project.card.json');
 const getProjectCardNoZube = require('../test/fixtures/github/project.card.no.zube.json');
 const getProject = require('../test/fixtures/github/project.json');
+const getProjectNoCards = require('../test/fixtures/github/project.no.cards.json');
 const getLabel = require('../test/fixtures/github/label.json');
 
 const fixtures = {
@@ -13,7 +14,10 @@ const fixtures = {
     1: getProjectCardNoZube,
     2: getProjectCard,
   },
-  'query getProjectFromIssue': getProject,
+  'query getProjectFromIssue': {
+    1: getProject,
+    2: getProjectNoCards,
+  },
   'query getLabel': getLabel,
   'mutation moveProjectCard': {
     clientMutationId: '12345',
@@ -28,16 +32,17 @@ const fixtures = {
 
 module.exports = {
   default: jest.fn((_, requestOptions) => {
+    let response;
     const body = JSON.parse(requestOptions.body);
     const fixture = Object.keys(fixtures).find((f) => body.query.includes(f));
-    let response = fixtures[fixture];
+    response = fixtures[fixture];
 
     if (body.variables.id) {
       if (response[body.variables.id]) {
         response = response[body.variables.id];
       }
     }
-    // look at query parameters
+    if (!response) response = {};
     return Promise.resolve(
       new Response(JSON.stringify(response), {
         headers: new Headers({ 'Content-Type': 'application/json' }),

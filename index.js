@@ -189,109 +189,112 @@ async function addLabel(context) {
  */
 module.exports = (app) => {
   app.log('Yay, the app was loaded!');
+  try {
+    // "Add to Source" opens the card and then labels it
+    app.on('issues.labeled', async (context) => {
+      try {
+        const {
+          label,
+          issue: { node_id: issueId },
+        } = context.payload;
+        // when a label is added see if it's a Zube one
+        if (label.name.includes('[zube]')) {
+          const { node } = await context.github.graphql(GET_PROJECT_FROM_ISSUE, {
+            id: issueId,
+          });
 
-  // "Add to Source" opens the card and then labels it
-  app.on('issues.labeled', async (context) => {
-    try {
-      const {
-        label,
-        issue: { node_id: issueId },
-      } = context.payload;
-      // when a label is added see if it's a Zube one
-      if (label.name.includes('[zube]')) {
-        const { node } = await context.github.graphql(GET_PROJECT_FROM_ISSUE, {
-          id: issueId,
-        });
-
-        const { nodes: projectCards } = node.projectCards;
-        const [cardNode] = projectCards;
-        // issue may not be assigned to a project
-        if (cardNode) {
-          const {
-            id: cardId,
-            column,
-            project: {
-              columns: { nodes: columns },
-            },
-          } = cardNode;
-          const columnName = label.name.toLowerCase().replace('[zube]: ', '');
-          const matchingColumn = columns.find((c) => c.name.toLowerCase() === columnName);
-          if (matchingColumn) {
-            if (column && column.id === matchingColumn.id) {
+          const { nodes: projectCards } = node.projectCards;
+          const [cardNode] = projectCards;
+          // issue may not be assigned to a project
+          if (cardNode) {
+            const {
+              id: cardId,
+              column,
+              project: {
+                columns: { nodes: columns },
+              },
+            } = cardNode;
+            const columnName = label.name.toLowerCase().replace('[zube]: ', '');
+            const matchingColumn = columns.find((c) => c.name.toLowerCase() === columnName);
+            if (matchingColumn) {
+              if (column && column.id === matchingColumn.id) {
               // do not move if current column is already assigned to matching column
-            } else {
+              } else {
               // move to column matching Zube label
-              return context.github.graphql(MOVE_PROJECT_CARD, {
-                input: {
-                  cardId,
-                  columnId: matchingColumn.id,
+                return context.github.graphql(MOVE_PROJECT_CARD, {
+                  input: {
+                    cardId,
+                    columnId: matchingColumn.id,
+                  },
+                });
+              }
+            }
+          } else {
+            await addCard(context);
+          }
+        }
+      } catch (e) {
+        onError(e, context);
+      }
+    });
+
+    app.on('project_card.created', async (context) => {
+      try {
+        const result = await getIssueFromCard(context);
+        if (result) {
+          const { issue } = result;
+          const {
+            labels: { nodes: labels },
+          } = issue;
+          const currentLabel = labels.find((l) => l.name.includes('[zube]'));
+          if (currentLabel) {
+          // already has a Zube label, do nothing
+          } else {
+            const accessJwt = await getAccessJwt();
+            // card created in GitHub, move Zube ticket from triage to matching board & category
+            const zubeCard = await getZubeCard({ payload: { issue } }, accessJwt);
+            const {
+              name: columnName,
+              project: { name: projectName },
+            } = result.column;
+            // find workspace matching card column
+            const { data } = await zubeRequest({
+              endpoint: `workspaces?where[name]=${projectName}`,
+              accessJwt,
+            });
+            const [workspace] = data;
+            if (workspace) {
+              await zubeRequest({
+                endpoint: `cards/${zubeCard.id}/move`,
+                accessJwt,
+                body: {
+                  destination: {
+                    position: 0,
+                    type: 'category',
+                    name: columnName,
+                    workspace_id: workspace.id,
+                  },
                 },
+                method: 'PUT',
               });
             }
           }
-        } else {
-          await addCard(context);
         }
+      } catch (e) {
+        onError(e, context);
       }
-    } catch (e) {
-      onError(e, context);
-    }
-  });
+    });
 
-  app.on('project_card.created', async (context) => {
-    try {
-      const result = await getIssueFromCard(context);
-      if (result) {
-        const { issue } = result;
-        const {
-          labels: { nodes: labels },
-        } = issue;
-        const currentLabel = labels.find((l) => l.name.includes('[zube]'));
-        if (currentLabel) {
-          // already has a Zube label, do nothing
-        } else {
-          const accessJwt = await getAccessJwt();
-          // card created in GitHub, move Zube ticket from triage to matching board & category
-          const zubeCard = await getZubeCard({ payload: { issue } }, accessJwt);
-          const {
-            name: columnName,
-            project: { name: projectName },
-          } = result.column;
-          // find workspace matching card column
-          const { data } = await zubeRequest({
-            endpoint: `workspaces?where[name]=${projectName}`,
-            accessJwt,
-          });
-          const [workspace] = data;
-          if (workspace) {
-            await zubeRequest({
-              endpoint: `cards/${zubeCard.id}/move`,
-              accessJwt,
-              body: {
-                destination: {
-                  position: 0,
-                  type: 'category',
-                  name: columnName,
-                  workspace_id: workspace.id,
-                },
-              },
-              method: 'PUT',
-            });
-          }
-        }
+    app.on('project_card.moved', async (context) => {
+      try {
+        return addLabel(context);
+      } catch (e) {
+        onError(e, context);
       }
-    } catch (e) {
-      onError(e, context);
-    }
-  });
-
-  app.on('project_card.moved', async (context) => {
-    try {
-      return addLabel(context);
-    } catch (e) {
-      onError(e, context);
-    }
-  });
+    });
+  } catch (e) {
+    onError(e);
+  }
 };
 
 // For more information on building apps:

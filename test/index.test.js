@@ -32,6 +32,12 @@ describe('My Probot app', () => {
   });
 
   test('issues.labeled', async () => {
+    issuesLabeled.issue.node_id = 1;
+    await probot.receive({ name: 'issues', payload: issuesLabeled });
+  });
+
+  test('issues.labeled no project cards', async () => {
+    issuesLabeled.issue.node_id = 2;
     await probot.receive({ name: 'issues', payload: issuesLabeled });
   });
 

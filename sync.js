@@ -1,17 +1,7 @@
+const { keyBy } = require('lodash');
 const request = require('request-promise-native');
 const { zubeRequest, getAccessJwt } = require('./zube');
-
 require('dotenv').config();
-
-const columns = {
-  inbox: 9403733,
-  backlog: 9403734,
-  small: 9403735,
-  next: 9577676,
-  'in progress': 9403736,
-  'in review': 9403737,
-  done: 9403739,
-};
 
 const GITHUB_API_URL = 'https://api.github.com';
 async function gitHubRequest({ endpoint, body, method = 'POST' }) {
@@ -27,12 +17,20 @@ async function gitHubRequest({ endpoint, body, method = 'POST' }) {
   });
 }
 
-module.exports = async () => {
+async function sync() {
+  const projectId = '4728159';
+  const zubeProjectName = 'Engineering Projects';
   try {
-    const { access_token: accessJwt } = await getAccessJwt();
-
+    const columns = await gitHubRequest({
+      endpoint: `projects/${projectId}/columns`,
+      method: 'GET',
+    });
+    const columnNames = keyBy(columns, 'name');
+    console.log('HERE');
+    const accessJwt = await getAccessJwt();
+    console.log(accessJwt);
     const { data } = await zubeRequest({
-      endpoint: 'workspaces?where[name]=Team PiP&select[]=id',
+      endpoint: `workspaces?where[name]=${zubeProjectName}&select[]=id`,
       accessJwt,
     });
 
@@ -52,7 +50,7 @@ module.exports = async () => {
         const { priority, github_issue: gitHubIssue, category_name: columnName } = c;
         const { id: issueId, number: issueNumber } = gitHubIssue;
         // get project column matching Zube category name
-        const columnId = columns[columnName.toLowerCase()];
+        const columnId = columnNames[columnName].id;
         if (columnId) {
           const createCard = {
             endpoint: `projects/columns/${columnId}/cards`,
@@ -86,4 +84,6 @@ module.exports = async () => {
   } catch (e) {
     console.trace(e);
   }
-};
+}
+
+sync();
