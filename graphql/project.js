@@ -6,7 +6,7 @@ query getProjectFromIssue($id: ID!) {
       number
       projectCards(first: 1) {
         nodes {
-          id
+          node_id: id
           column {
             id
             name

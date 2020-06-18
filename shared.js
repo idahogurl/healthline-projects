@@ -59,6 +59,7 @@ async function getColumnsByProjectName({ context, repoId, projectName }) {
 async function moveProjectCard({
   context, projectCardNode, newColumn, projectColumns = [],
 }) {
+  console.log('projectCardNode', projectCardNode);
   const { node_id: cardId, column, project } = projectCardNode;
   const columns = (project && project.columns.nodes) || projectColumns;
   // find column in GitHub project that matches Zube label
@@ -66,6 +67,13 @@ async function moveProjectCard({
     columns,
     newColumn,
     currentColumn: column.name,
+  });
+  console.log('matchingColumn', matchingColumn);
+  console.log('input', {
+    input: {
+      cardId,
+      columnId: matchingColumn.id,
+    },
   });
   if (matchingColumn) {
     return context.github.graphql(MOVE_PROJECT_CARD, {
