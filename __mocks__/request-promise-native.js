@@ -1,7 +1,7 @@
 /* eslint-env jest */
 const zubeCard = require('../test/fixtures/zube/card.json');
 const zubeWorkspace = require('../test/fixtures/zube/workspace.json');
-const zubeWorkspaceName = require('../test/fixtures/zube/workspace.name.json');
+const zubeWorkspaceName = require('../test/fixtures/zube/workspace-name.json');
 
 const fixtures = {
   'https://zube.io/api/projects/16987/cards?search=MNT%20program%20pages%20show%20%22Healthline%22': zubeCard,
