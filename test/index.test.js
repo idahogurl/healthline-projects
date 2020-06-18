@@ -8,9 +8,11 @@ const path = require('path');
 // Requiring our app implementation
 const myProbotApp = require('..');
 // Requiring our fixtures
-const projectCardCreated = require('./fixtures/github/project_card.created.json');
-const projectCardMoved = require('./fixtures/github/project_card.moved.json');
-const issuesLabeled = require('./fixtures/github/issues.labeled.json');
+const projectCardCreated = require('./fixtures/github/project-card-created.json');
+const projectCardMoved = require('./fixtures/github/project-card-moved.json');
+const issuesLabeled = require('./fixtures/github/issues-labeled.json');
+
+jest.setTimeout(20000); // 1 second
 
 describe('My Probot app', () => {
   let probot;
@@ -46,8 +48,14 @@ describe('My Probot app', () => {
     await probot.receive({ name: 'project_card', payload: projectCardCreated });
   });
 
-  test('project_card.created has Zube label', async () => {
+  test('project_card.created has same Zube label', async () => {
     projectCardCreated.project_card.node_id = 2;
+    await probot.receive({ name: 'project_card', payload: projectCardCreated });
+  });
+
+  test('project_card.created has different Zube label', async () => {
+    projectCardCreated.project_card.node_id = 3;
+    // Zube label different than column
     await probot.receive({ name: 'project_card', payload: projectCardCreated });
   });
 

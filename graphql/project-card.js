@@ -1,7 +1,7 @@
-const GET_PROJECT_CARD = `
+const GET_PROJECT_CARD_ISSUE = `
 query getProjectCard($id: ID!) {
   node(id: $id) {
-    id
+    node_id: id
     ... on ProjectCard {
       column {
         id
@@ -48,5 +48,5 @@ mutation addProjectCard($input: AddProjectCardInput!) {
 module.exports = {
   ADD_PROJECT_CARD,
   MOVE_PROJECT_CARD,
-  GET_PROJECT_CARD,
+  GET_PROJECT_CARD_ISSUE,
 };
