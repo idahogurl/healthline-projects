@@ -1,37 +1,59 @@
+
 # healthline-projects
 
 > A GitHub App that synchronizes GitHub project cards with Zube.io kanban board.
 
-When a user clicks 'Add to Source' Zube :
-1. Creates GitHub issue
-2. Adds Zube label to GitHub issue
+## USE CASE
 
-on issue.labeled
-1. Query for issue's project cards
-2. If no project card then create one
+When user assigns issue to project board in GitHub
 
-ELSE 
+### Handler Logic
 
-  1. Does it already have a Zube label?
-  2. Does it already have the same Zube label
-    Do nothing
-        ELSE
-    Remove current label and add new label
+1. Find the issue of card
+2. Does that issue already have a Zube label?
+	- **Yes** - Move card to column matching Zube label
+	- **No** 
+	  - Query zube for card
+      - Query for categories in Zube
+	  - Move card to matching category in Zube
 
-on project_card.created
+## USE CASE
 
+When a user clicks `Add to Source`, Zube will create GitHub issue and then add Zube label to related GitHub issue.
 
-on project_card.moved
+### Handler Logic
 
-## Setup
+1. Check if Zube label
+2. Query for issue's project cards
+3. Does it have an project card?
+	- **Yes** - Create project card
+	- **No** - Does it already have a Zube label and not the same Zube label?
+		 - **Yes** - Move to GitHub project column matching Zube label
+		 - **No** - Do nothing
 
-```sh
-# Install dependencies
-npm install
+  
+## USE CASE
 
-# Run the bot
-npm start
-```
+When a user moves card in Zube, Zube then labels related GitHub issue. The label starts with the prefix of `[zube]: ` followed by the  Zube column name.
+
+### Handler Logic
+1. Is the label a Zube label?
+	- Find project card from issue that was labeled
+	- Is project card already in column whose name match Zube label?
+      - **Yes** - Do nothing
+      - **No** - Move card to column
+2. Is the label a priority label? 
+ 	- Find project card from issue that was labeled
+ 	- Set Zube card to priority matching the label
+
+## USE CASE
+
+When a user moves card in GitHub
+
+### Handler Logic
+
+1. Remove existing Zube label (if any)
+2. Add Zube label matching GitHub project column name
 
 ## License
 

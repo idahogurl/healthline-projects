@@ -23,12 +23,11 @@ When a user moves card in Zube:
 1. Adds Zube label to GitHub issue (fires issue.labeled event)
 */
 const { getAccessJwt, zubeRequest } = require('./zube');
-const { getZubeCard, getColumnsByProjectName } = require('./shared');
+const { getZubeCard, getColumnsByProjectName, moveProjectCard } = require('./shared');
 const { logInfo } = require('./error-handler');
 const { ADD_PROJECT_CARD } = require('./graphql/project-card');
 const { GET_PROJECT_FROM_ISSUE } = require('./graphql/project');
 const { GET_LABEL, ADD_LABEL } = require('./graphql/label');
-const { moveProjectCard } = require('./card');
 
 async function addCard(context) {
   const {

@@ -1,5 +1,5 @@
 const { zubeRequest } = require('./zube');
-const { GET_PROJECT_CARD_ISSUE } = require('./graphql/project-card');
+const { GET_PROJECT_CARD_ISSUE, MOVE_PROJECT_CARD } = require('./graphql/project-card');
 const { GET_PROJECT_COLUMNS } = require('./graphql/project');
 
 function getMatchingColumn({ columns, newColumn, currentColumn }) {
@@ -56,9 +56,31 @@ async function getColumnsByProjectName({ context, repoId, projectName }) {
   return projectNode.columns;
 }
 
+async function moveProjectCard({
+  context, projectCardNode, newColumn, projectColumns = [],
+}) {
+  const { id: cardId, column, project } = projectCardNode;
+  const columns = (project && project.columns.nodes) || projectColumns;
+  // find column in GitHub project that matches Zube label
+  const matchingColumn = getMatchingColumn({
+    columns,
+    newColumn,
+    currentColumn: column.name,
+  });
+  if (matchingColumn) {
+    return context.github.graphql(MOVE_PROJECT_CARD, {
+      input: {
+        cardId,
+        columnId: matchingColumn.id,
+      },
+    });
+  }
+}
+
 module.exports = {
   getMatchingColumn,
   getZubeCard,
   getIssueFromCard,
   getColumnsByProjectName,
+  moveProjectCard,
 };

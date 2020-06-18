@@ -13,8 +13,12 @@ HANDLER LOGIC
     c. Move card to matching category in Zube
 */
 
-const { moveProjectCard } = require('./card');
-const { getIssueFromCard, getZubeCard, getColumnsByProjectName } = require('./shared');
+const {
+  getIssueFromCard,
+  getZubeCard,
+  getColumnsByProjectName,
+  moveProjectCard,
+} = require('./shared');
 const { getAccessJwt, zubeRequest } = require('./zube');
 
 module.exports = async function onCardCreated(context) {
