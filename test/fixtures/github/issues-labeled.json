@@ -1,7 +1,7 @@
 {
     "action": "labeled",
     "label": {
-        "name": "[zube]: Next"
+        "name": "[zube]: Inbox"
     },
     "issue": {
         "node_id": "",
