@@ -107,7 +107,6 @@ module.exports = async function onIssueLabeled(context) {
 
     const { nodes: projectCards } = node.projectCards;
     const [projectCardNode] = projectCards;
-    console.log(projectCardNode);
 
     if (projectCardNode) {
       await moveProjectCard({
