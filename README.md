@@ -1,5 +1,6 @@
 
 # healthline-projects
+[![Run on Repl.it](https://repl.it/badge/github/idahogurl/healthline-projects)](https://repl.it/github/idahogurl/healthline-projects)
 
 > A GitHub App that synchronizes GitHub project cards with Zube.io kanban board.
 
