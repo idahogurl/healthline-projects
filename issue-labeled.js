@@ -29,6 +29,24 @@ const { ADD_PROJECT_CARD } = require('./graphql/project-card');
 const { GET_PROJECT_FROM_ISSUE } = require('./graphql/project');
 const { GET_LABEL, ADD_LABEL } = require('./graphql/label');
 
+async function assignPriority() {
+  const {
+    repository: {
+      labels: { nodes: labelNodes },
+    },
+  } = await context.github.graphql(GET_LABEL, {
+    name: repoName,
+    owner: login,
+    search: `P${priority}`,
+  });
+
+  const [label] = labelNodes;
+  await context.github.graphql(ADD_LABEL, {
+    labelableId: issueId,
+    labelIds: [label.id],
+  });
+}
+
 async function addCard(context) {
   const {
     issue: { node_id: issueId, number },
@@ -68,23 +86,8 @@ async function addCard(context) {
         },
       });
 
-      // add priority label
       if (priority) {
-        const {
-          repository: {
-            labels: { nodes: labelNodes },
-          },
-        } = await context.github.graphql(GET_LABEL, {
-          name: repoName,
-          owner: login,
-          search: `P${priority}`,
-        });
-
-        const [label] = labelNodes;
-        await context.github.graphql(ADD_LABEL, {
-          labelableId: issueId,
-          labelIds: [label.id],
-        });
+        await assignPriority(priority);
       }
     } else {
       logInfo(`Could not match '${searchCategory}' to GitHub project column`);
@@ -100,6 +103,7 @@ module.exports = async function onIssueLabeled(context) {
     issue: { node_id: issueId },
   } = context.payload;
 
+  // Zube label?
   if (addedLabel.name.includes('[zube]')) {
     const { node } = await context.github.graphql(GET_PROJECT_FROM_ISSUE, {
       id: issueId,
@@ -117,5 +121,19 @@ module.exports = async function onIssueLabeled(context) {
     } else {
       await addCard(context);
     }
+  }
+
+  // priority label?
+  if (/^P\d$/.test(addedLabel.name)) {
+    const accessJwt = await getAccessJwt();
+    const zubeCard = await getZubeCard(context, accessJwt);
+    await zubeRequest({
+      endpoint: `cards/${zubeCard.id}`,
+      accessJwt,
+      body: {
+        priority: addedLabel.name.replace('P', ''),
+      },
+      method: 'PUT',
+    });
   }
 };
