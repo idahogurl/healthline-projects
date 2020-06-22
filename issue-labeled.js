@@ -100,7 +100,7 @@ async function addCard(context) {
 module.exports = async function onIssueLabeled(context) {
   const {
     label: addedLabel,
-    issue: { node_id: issueId },
+    issue: { node_id: issueId, number },
   } = context.payload;
 
   // Zube label?
@@ -127,13 +127,17 @@ module.exports = async function onIssueLabeled(context) {
   if (/^P\d$/.test(addedLabel.name)) {
     const accessJwt = await getAccessJwt();
     const zubeCard = await getZubeCard(context, accessJwt);
-    await zubeRequest({
-      endpoint: `cards/${zubeCard.id}`,
-      accessJwt,
-      body: {
-        priority: addedLabel.name.replace('P', ''),
-      },
-      method: 'PUT',
-    });
+    if (zubeCard) {
+      await zubeRequest({
+        endpoint: `cards/${zubeCard.id}`,
+        accessJwt,
+        body: {
+          priority: addedLabel.name.replace('P', ''),
+        },
+        method: 'PUT',
+      });
+    } else {
+      logInfo(`GitHub issue #${number} could not be found in Zube`);
+    }
   }
 };
