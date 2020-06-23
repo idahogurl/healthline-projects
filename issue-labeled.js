@@ -28,6 +28,7 @@ const { logInfo } = require('./error-handler');
 const { ADD_PROJECT_CARD } = require('./graphql/project-card');
 const { GET_PROJECT_FROM_ISSUE } = require('./graphql/project');
 const { GET_LABEL, ADD_LABEL } = require('./graphql/label');
+const zube = require('./zube');
 
 async function assignPriority() {
   const {
@@ -127,15 +128,19 @@ module.exports = async function onIssueLabeled(context) {
   if (/^P\d$/.test(addedLabel.name)) {
     const accessJwt = await getAccessJwt();
     const zubeCard = await getZubeCard(context, accessJwt);
+    const priority = parseInt(addedLabel.name.replace('P', ''), 10);
     if (zubeCard) {
-      await zubeRequest({
-        endpoint: `cards/${zubeCard.id}`,
-        accessJwt,
-        body: {
-          priority: addedLabel.name.replace('P', ''),
-        },
-        method: 'PUT',
-      });
+      if (zubeCard.priority !== priority) {
+        await zubeRequest({
+          endpoint: `cards/${zubeCard.id}`,
+          accessJwt,
+          body: {
+            ...zubeCard,
+            priority,
+          },
+          method: 'PUT',
+        });
+      }
     } else {
       logInfo(`GitHub issue #${number} could not be found in Zube`);
     }
