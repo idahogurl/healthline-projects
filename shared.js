@@ -23,6 +23,7 @@ async function getZubeCard(context, accessJwt) {
     accessJwt,
   };
   const { data } = await zubeRequest(params);
+  console.log(data);
   // find issue in Zube cards
   const zubeCard = data
     .filter((d) => d.github_issue !== null)
