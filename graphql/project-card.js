@@ -30,8 +30,8 @@ query getIssueFromProjectCard($id: ID!) {
 `;
 
 const GET_PROJECT_CARD_FROM_ISSUE = `
-query getProjectCardFromIssue($issueId: ID!) {
-    node(id: $issueId) {
+query getProjectCardFromIssue($id: ID!) {
+    node(id: $id) {
       id
       ... on Issue {
         number
