@@ -23,29 +23,29 @@ When a user moves card in Zube:
 1. Adds Zube label to GitHub issue (fires issue.labeled event)
 */
 const { getAccessJwt, zubeRequest } = require('./zube');
-const { getZubeCard, getColumnsByProjectName, moveProjectCard } = require('./shared');
+const {
+  getZubeCard, getColumnsByProjectName, moveProjectCard, findLabel,
+} = require('./shared');
 const { logInfo } = require('./error-handler');
 const { ADD_PROJECT_CARD } = require('./graphql/project-card');
 const { GET_PROJECT_FROM_ISSUE } = require('./graphql/project');
-const { GET_LABEL, ADD_LABEL } = require('./graphql/label');
-const zube = require('./zube');
+const { ADD_LABEL } = require('./graphql/label');
 
-async function assignPriority() {
+async function assignPriority(context, priority) {
   const {
-    repository: {
-      labels: { nodes: labelNodes },
-    },
-  } = await context.github.graphql(GET_LABEL, {
-    name: repoName,
-    owner: login,
-    search: `P${priority}`,
-  });
+    issue: { node_id: issueId },
+  } = context.payload;
 
-  const [label] = labelNodes;
-  await context.github.graphql(ADD_LABEL, {
-    labelableId: issueId,
-    labelIds: [label.id],
-  });
+  const search = `P${priority}`;
+  const label = await findLabel(context, search);
+  if (label) {
+    await context.github.graphql(ADD_LABEL, {
+      labelableId: issueId,
+      labelIds: [label.id],
+    });
+  } else {
+    logInfo(`Could not find '${search}' in GitHub labels`);
+  }
 }
 
 async function addCard(context) {
@@ -54,11 +54,7 @@ async function addCard(context) {
     repository,
   } = context.payload;
 
-  const {
-    node_id: repoId,
-    name: repoName,
-    owner: { login },
-  } = repository;
+  const { node_id: repoId } = repository;
 
   const accessJwt = await getAccessJwt();
   const zubeCard = await getZubeCard(context, accessJwt);
@@ -87,8 +83,8 @@ async function addCard(context) {
         },
       });
 
-      if (priority) {
-        await assignPriority(priority);
+      if (priority !== null) {
+        await assignPriority(context, priority);
       }
     } else {
       logInfo(`Could not match '${searchCategory}' to GitHub project column`);

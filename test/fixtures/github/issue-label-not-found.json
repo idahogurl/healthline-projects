@@ -4,7 +4,7 @@
         "node_id": "MDExOlByb2plY3RDYXJkMzkyMDc2MTE=",
         "column": {
           "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzIy",
-          "name": "In progress",
+          "name": "Done",
           "project": {
             "id": "MDc6UHJvamVjdDQ2Mjc2NDQ=",
             "name": "Team Board"
@@ -18,7 +18,7 @@
             "nodes": [
               {
                 "id": "MDU6TGFiZWwyMTI0MzQzNTIz",
-                "name": "[zube]: Inbox"
+                "name": "[zube]: In Progress"
               },
               {
                 "id": "MDU6TGFiZWw5ODc5MzM5NjM=",

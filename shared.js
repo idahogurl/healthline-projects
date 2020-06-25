@@ -1,6 +1,7 @@
 const { zubeRequest } = require('./zube');
-const { GET_PROJECT_CARD_ISSUE, MOVE_PROJECT_CARD } = require('./graphql/project-card');
+const { GET_ISSUE_FROM_PROJECT_CARD, MOVE_PROJECT_CARD } = require('./graphql/project-card');
 const { GET_PROJECT_COLUMNS } = require('./graphql/project');
+const { GET_LABEL } = require('./graphql/label');
 
 function getMatchingColumn({ columns, newColumn, currentColumn }) {
   const newColumnName = newColumn.toLowerCase().replace('[zube]: ', '');
@@ -23,7 +24,6 @@ async function getZubeCard(context, accessJwt) {
     accessJwt,
   };
   const { data } = await zubeRequest(params);
-  console.log(data);
   // find issue in Zube cards
   const zubeCard = data
     .filter((d) => d.github_issue !== null)
@@ -35,14 +35,14 @@ async function getZubeCard(context, accessJwt) {
 async function getIssueFromCard(context) {
   const { project_card: projectCardNode } = context.payload;
   // get column of project card
-  const { node: projectCard } = await context.github.graphql(GET_PROJECT_CARD_ISSUE, {
+  const { node: projectCard } = await context.github.graphql(GET_ISSUE_FROM_PROJECT_CARD, {
     id: projectCardNode.node_id,
   });
   // get the column & issue from event's project card
   const { column, content: issue } = projectCard;
 
   // pull request being added to project do not have an issue
-  if (issue.id) {
+  if (issue && issue.id) {
     return { issue, column };
   }
 }
@@ -79,10 +79,30 @@ async function moveProjectCard({
   }
 }
 
+async function findLabel(context, search) {
+  // get the matching label
+  const {
+    name: repoName,
+    owner: { login },
+  } = context.payload.repository;
+  const {
+    repository: {
+      labels: { nodes: labelNodes },
+    },
+  } = await context.github.graphql(GET_LABEL, {
+    name: repoName,
+    owner: login,
+    search,
+  });
+
+  return labelNodes.find((l) => l.name.toLowerCase() === search.toLowerCase());
+}
+
 module.exports = {
   getMatchingColumn,
   getZubeCard,
   getIssueFromCard,
   getColumnsByProjectName,
   moveProjectCard,
+  findLabel,
 };

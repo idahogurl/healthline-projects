@@ -43,6 +43,20 @@ describe('My Probot app', () => {
     await probot.receive({ name: 'issues', payload: issuesLabeled });
   });
 
+  test('issues.unlabeled', async () => {
+    const issuesUnlabeled = { ...issuesLabeled };
+    issuesUnlabeled.action = 'unlabeled';
+    issuesUnlabeled.issue.node_id = 1;
+    await probot.receive({ name: 'issues', payload: issuesUnlabeled });
+  });
+
+  test('issues.unlabeled no project cards', async () => {
+    const issuesUnlabeled = { ...issuesLabeled };
+    issuesUnlabeled.action = 'unlabeled';
+    issuesUnlabeled.issue.node_id = 2;
+    await probot.receive({ name: 'issues', payload: issuesLabeled });
+  });
+
   test('project_card.created no Zube label', async () => {
     projectCardCreated.project_card.node_id = 1;
     await probot.receive({ name: 'project_card', payload: projectCardCreated });
@@ -59,8 +73,18 @@ describe('My Probot app', () => {
     await probot.receive({ name: 'project_card', payload: projectCardCreated });
   });
 
-  test('project_card.moved', async () => {
-    projectCardMoved.project_card.node_id = 2;
+  test('project_card.moved label not found', async () => {
+    projectCardMoved.project_card.node_id = 3;
+    await probot.receive({ name: 'project_card', payload: projectCardMoved });
+  });
+
+  test('project_card.moved same label', async () => {
+    projectCardMoved.project_card.node_id = 4;
+    await probot.receive({ name: 'project_card', payload: projectCardMoved });
+  });
+
+  test('project_card.moved different label', async () => {
+    projectCardMoved.project_card.node_id = 5;
     await probot.receive({ name: 'project_card', payload: projectCardMoved });
   });
 
