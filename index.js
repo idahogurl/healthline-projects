@@ -1,5 +1,6 @@
 const { onError } = require('./error-handler');
 const onIssueLabeled = require('./issue-labeled');
+const onIssueUnlabeled = require('./issue-unlabeled');
 const onProjectCardCreated = require('./card-created');
 const onProjectCardMoved = require('./card-moved');
 
@@ -16,6 +17,14 @@ module.exports = (app) => {
     app.on('issues.labeled', async (context) => {
       try {
         onIssueLabeled(context);
+      } catch (e) {
+        onError(e, context);
+      }
+    });
+
+    app.on('issues.unlabeled', async (context) => {
+      try {
+        onIssueUnlabeled(context);
       } catch (e) {
         onError(e, context);
       }

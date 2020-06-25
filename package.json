@@ -16,9 +16,9 @@
   "scripts": {
     "dev": "nodemon",
     "start": "probot run ./index.js",
-    "lint": "eslint --fix",
-    "test": "yarn lint && jest",
-    "test:watch": "jest --watch --notify --notifyMode=change --coverage"
+    "lint": "eslint",
+    "test": "ENV=dev yarn lint && jest",
+    "test:watch": "ENV=dev jest --watch --notify --notifyMode=change --coverage"
   },
   "dependencies": {
     "dotenv": "^8.2.0",

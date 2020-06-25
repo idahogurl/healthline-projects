@@ -1,5 +1,5 @@
-const GET_PROJECT_CARD_ISSUE = `
-query getProjectCard($id: ID!) {
+const GET_ISSUE_FROM_PROJECT_CARD = `
+query getIssueFromProjectCard($id: ID!) {
   node(id: $id) {
     node_id: id
     ... on ProjectCard {
@@ -29,6 +29,22 @@ query getProjectCard($id: ID!) {
 }
 `;
 
+const GET_PROJECT_CARD_FROM_ISSUE = `
+query getProjectCardFromIssue($issueId: ID!) {
+    node(id: $issueId) {
+      id
+      ... on Issue {
+        number
+        projectCards(first: 1) {
+         nodes {
+            node_id: id
+         }
+       }
+     }
+   }
+}
+`;
+
 const MOVE_PROJECT_CARD = `
 mutation moveProjectCard($input: MoveProjectCardInput!) {
   moveProjectCard(input: $input) {
@@ -45,8 +61,18 @@ mutation addProjectCard($input: AddProjectCardInput!) {
 }
 `;
 
+const DELETE_PROJECT_CARD = `
+  mutation removeProjectCard($input: DeleteProjectCardInput!) {
+    removeProjectCard(input: $input) {
+      clientMutationId   
+    }
+  }
+`;
+
 module.exports = {
   ADD_PROJECT_CARD,
   MOVE_PROJECT_CARD,
-  GET_PROJECT_CARD_ISSUE,
+  DELETE_PROJECT_CARD,
+  GET_ISSUE_FROM_PROJECT_CARD,
+  GET_PROJECT_CARD_FROM_ISSUE,
 };
