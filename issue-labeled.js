@@ -43,8 +43,6 @@ async function assignPriority(context, priority) {
       labelableId: issueId,
       labelIds: [label.id],
     });
-  } else {
-    logInfo(`Could not find '${search}' in GitHub labels`);
   }
 }
 

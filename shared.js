@@ -1,4 +1,5 @@
 const { zubeRequest } = require('./zube');
+const { logInfo } = require('./error-handler');
 const { GET_ISSUE_FROM_PROJECT_CARD, MOVE_PROJECT_CARD } = require('./graphql/project-card');
 const { GET_PROJECT_COLUMNS } = require('./graphql/project');
 const { GET_LABEL } = require('./graphql/label');
@@ -95,7 +96,11 @@ async function findLabel(context, search) {
     search,
   });
 
-  return labelNodes.find((l) => l.name.toLowerCase() === search.toLowerCase());
+  const label = labelNodes.find((l) => l.name.toLowerCase() === search.toLowerCase());
+  if (label) {
+    return label;
+  }
+  logInfo(`Could not find '${search}' in GitHub labels`);
 }
 
 module.exports = {
