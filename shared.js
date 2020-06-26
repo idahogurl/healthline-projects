@@ -48,9 +48,9 @@ async function getIssueFromCard(context) {
   }
 }
 
-async function getColumnsByProjectName({ context, organizationId, projectName }) {
+async function getColumnsByProjectName({ context, repoId, projectName }) {
   const { node: repoNode } = await context.github.graphql(GET_PROJECT_COLUMNS, {
-    id: organizationId,
+    id: repoId,
     project: projectName,
   });
 

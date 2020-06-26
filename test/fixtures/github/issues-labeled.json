@@ -15,19 +15,5 @@
         "owner": {
           "login": "Codertocat"
         }
-    },
-    "organization": {
-        "login": "healthline",
-        "id": 22304257,
-        "node_id": "MDEyOk9yZ2FuaXphdGlvbjIyMzA0MjU3",
-        "url": "https://api.github.com/orgs/healthline",
-        "repos_url": "https://api.github.com/orgs/healthline/repos",
-        "events_url": "https://api.github.com/orgs/healthline/events",
-        "hooks_url": "https://api.github.com/orgs/healthline/hooks",
-        "issues_url": "https://api.github.com/orgs/healthline/issues",
-        "members_url": "https://api.github.com/orgs/healthline/members{/member}",
-        "public_members_url": "https://api.github.com/orgs/healthline/public_members{/member}",
-        "avatar_url": "https://avatars1.githubusercontent.com/u/22304257?v=4",
-        "description": ""
-      }
+    }
 }

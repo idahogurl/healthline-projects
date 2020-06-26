@@ -24,7 +24,7 @@ const { getAccessJwt, zubeRequest } = require('./zube');
 module.exports = async function onCardCreated(context) {
   const {
     project_card: projectCardNode,
-    organization: { node_id: organizationId },
+    repository: { node_id: repoId },
   } = context.payload;
 
   const result = await getIssueFromCard(context, projectCardNode.node_id);
@@ -40,7 +40,7 @@ module.exports = async function onCardCreated(context) {
     if (zubeLabel) {
       const { nodes: columns } = await getColumnsByProjectName({
         context,
-        organizationId,
+        repoId,
         projectName: column.project.name,
       });
       // issue already has a Zube label, move to matching projects column
