@@ -30,7 +30,7 @@ const GET_PROJECT_COLUMNS = `
 query getProjectColumns($id: ID!, $project: String!) {
   node(id: $id) {
     id
-    ... on Repository {
+    ... on Organization {
       projects(search: $project, first: 1) {
         nodes {
           columns(first: 20) {

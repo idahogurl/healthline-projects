@@ -49,10 +49,10 @@ async function assignPriority(context, priority) {
 async function addCard(context) {
   const {
     issue: { node_id: issueId, number },
-    repository,
+    organization,
   } = context.payload;
 
-  const { node_id: repoId } = repository;
+  const { node_id: organizationId } = organization;
 
   const accessJwt = await getAccessJwt();
   const zubeCard = await getZubeCard(context, accessJwt);
@@ -66,7 +66,7 @@ async function addCard(context) {
 
     const { nodes: columns } = await getColumnsByProjectName({
       context,
-      repoId,
+      organizationId,
       projectName: workspace.name,
     });
     // get column matching Zube category
