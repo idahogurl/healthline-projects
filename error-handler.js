@@ -8,23 +8,23 @@ const rollbar = new Rollbar({
   captureUnhandledRejections: true,
 });
 
-function onError(e, context) {
+async function onError(e, context) {
   if (process.env.ENV === 'prod') {
-    rollbar.error(e, context.payload, { level: 'info' });
-  } else {
-    // eslint-disable-next-line no-console
-    console.error(e, context.payload);
+    return rollbar.error(e, context.payload, { level: 'info' });
   }
+  // eslint-disable-next-line no-console
+  console.error(e, context.payload);
+
   throw e;
 }
 
-function logInfo(s) {
+async function logInfo(s) {
   if (process.env.ENV === 'prod') {
-    rollbar.info(s);
-  } else {
-    // eslint-disable-next-line no-console
     console.log(s);
+    return rollbar.info(s);
   }
+  // eslint-disable-next-line no-console
+  console.log(s);
 }
 
 module.exports = {

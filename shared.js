@@ -146,7 +146,7 @@ async function findLabel(context, search) {
   if (label) {
     return label;
   }
-  logInfo(`Could not find '${search}' in GitHub labels`);
+  await logInfo(`Could not find '${search}' in GitHub labels`);
 }
 
 module.exports = {
