@@ -1,15 +1,19 @@
-const { zubeRequest } = require('./zube');
+const { zubeRequest, getAccessJwt } = require('./zube');
 const { logInfo } = require('./error-handler');
-const { GET_ISSUE_FROM_PROJECT_CARD, MOVE_PROJECT_CARD } = require('./graphql/project-card');
+const {
+  GET_ISSUE_FROM_PROJECT_CARD,
+  MOVE_PROJECT_CARD,
+  ADD_PROJECT_CARD,
+} = require('./graphql/project-card');
 const { GET_PROJECT_COLUMNS } = require('./graphql/project');
 const { GET_LABEL } = require('./graphql/label');
 
 function getMatchingColumn({ columns, newColumn, currentColumn }) {
   const newColumnName = newColumn.toLowerCase().replace('[zube]: ', '');
-  if (newColumnName === currentColumn.toLowerCase()) {
+  if (currentColumn && newColumnName === currentColumn.toLowerCase()) {
     // card already in new column
   }
-  return columns.find((c) => c.name.toLowerCase() === newColumnName);
+  return columns && columns.find((c) => c.name.toLowerCase() === newColumnName);
 }
 
 async function getZubeCard(context, accessJwt) {
@@ -31,6 +35,21 @@ async function getZubeCard(context, accessJwt) {
     .find((d) => d.github_issue.number === number);
 
   return zubeCard;
+}
+
+async function getZubeCardDetails(context) {
+  const accessJwt = await getAccessJwt();
+  const zubeCard = await getZubeCard(context, accessJwt);
+  const { workspace_id: workspaceId, category_name: zubeCategory, priority } = zubeCard;
+
+  if (workspaceId === null) {
+    return {};
+  }
+  const zubeWorkspace = await zubeRequest({
+    endpoint: `workspaces/${workspaceId}`,
+    accessJwt,
+  });
+  return { zubeWorkspace, zubeCategory, priority };
 }
 
 async function getIssueFromCard(context) {
@@ -55,19 +74,46 @@ async function getColumnsByProjectName({ context, repoId, projectName }) {
   });
 
   const [projectNode] = repoNode.projects.nodes;
-  return projectNode.columns;
+  if (projectNode) {
+    return projectNode.columns.nodes;
+  }
+  return {};
+}
+
+async function addCardToProject({ context, zubeWorkspace, zubeCategory }) {
+  const {
+    issue: { node_id: issueId },
+    repository: { node_id: repoId },
+  } = context.payload;
+  const columns = await getColumnsByProjectName({
+    context,
+    repoId,
+    projectName: zubeWorkspace.name,
+  });
+  // get column matching Zube category
+  const searchCategory = zubeCategory.toLowerCase();
+  const column = columns.length && columns.find((c) => c.name.toLowerCase() === searchCategory);
+  if (column) {
+    // add project card to that matching column from matching project
+    return context.github.graphql(ADD_PROJECT_CARD, {
+      input: {
+        projectColumnId: column.id,
+        contentId: issueId,
+      },
+    });
+  }
 }
 
 async function moveProjectCard({
   context, projectCardNode, newColumn, projectColumns = [],
 }) {
   const { node_id: cardId, column, project } = projectCardNode;
-  const columns = (project && project.columns.nodes) || projectColumns;
+  const columns = (project && project.columns && project.columns.nodes) || projectColumns;
   // find column in GitHub project that matches Zube label
   const matchingColumn = getMatchingColumn({
     columns,
     newColumn,
-    currentColumn: column.name,
+    currentColumn: column && column.name,
   });
 
   if (matchingColumn) {
@@ -106,8 +152,10 @@ async function findLabel(context, search) {
 module.exports = {
   getMatchingColumn,
   getZubeCard,
+  getZubeCardDetails,
   getIssueFromCard,
   getColumnsByProjectName,
+  addCardToProject,
   moveProjectCard,
   findLabel,
 };

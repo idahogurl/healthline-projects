@@ -38,6 +38,10 @@ query getProjectCardFromIssue($id: ID!) {
         projectCards(first: 1) {
          nodes {
             node_id: id
+            project {
+              id
+              name
+            }
          }
        }
      }
@@ -62,8 +66,8 @@ mutation addProjectCard($input: AddProjectCardInput!) {
 `;
 
 const DELETE_PROJECT_CARD = `
-  mutation removeProjectCard($input: DeleteProjectCardInput!) {
-    removeProjectCard(input: $input) {
+  mutation deleteProjectCard($input: DeleteProjectCardInput!) {
+    deleteProjectCard(input: $input) {
       clientMutationId   
     }
   }
