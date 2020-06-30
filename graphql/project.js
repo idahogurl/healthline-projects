@@ -12,6 +12,8 @@ query getProjectFromIssue($id: ID!) {
             name
           }
           project {
+            id
+            name
             columns(first: 20) {
               nodes {
                 id

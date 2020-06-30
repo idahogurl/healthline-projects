@@ -38,18 +38,22 @@ module.exports = async function onCardCreated(context) {
     } = issue;
     const zubeLabel = labels.find((l) => l.name.includes('[zube]'));
     if (zubeLabel) {
-      const { nodes: columns } = await getColumnsByProjectName({
-        context,
-        repoId,
-        projectName: column.project.name,
-      });
-      // issue already has a Zube label, move to matching projects column
-      await moveProjectCard({
-        context,
-        projectCardNode,
-        newColumn: zubeLabel.name,
-        projectColumns: columns,
-      });
+      if (zubeLabel.name.toLowerCase() === `[zube]: ${column.name.toLowerCase()}`) {
+        // do nothing if column is the same as the label
+      } else {
+        const columns = await getColumnsByProjectName({
+          context,
+          repoId,
+          projectName: column.project.name,
+        });
+        // issue already has a Zube label, move to matching projects column
+        await moveProjectCard({
+          context,
+          projectCardNode,
+          newColumn: zubeLabel.name,
+          projectColumns: columns,
+        });
+      }
     } else {
       const accessJwt = await getAccessJwt();
       // card created in GitHub, move Zube ticket from triage to matching board & category
@@ -78,9 +82,6 @@ module.exports = async function onCardCreated(context) {
           },
           method: 'PUT',
         });
-
-        // add a label?
-        // Not sure if Zube does this for you
       }
     }
   }

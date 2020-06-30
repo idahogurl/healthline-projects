@@ -24,12 +24,18 @@ When a user moves card in Zube:
 */
 const { getAccessJwt, zubeRequest } = require('./zube');
 const {
-  getZubeCard, getColumnsByProjectName, moveProjectCard, findLabel,
+  getZubeCard,
+  moveProjectCard,
+  findLabel,
+  getZubeCardDetails,
+  addCardToProject,
+  getColumnsByProjectName,
 } = require('./shared');
 const { logInfo } = require('./error-handler');
-const { ADD_PROJECT_CARD } = require('./graphql/project-card');
+const { DELETE_PROJECT_CARD } = require('./graphql/project-card');
 const { GET_PROJECT_FROM_ISSUE } = require('./graphql/project');
 const { ADD_LABEL } = require('./graphql/label');
+const { getLabelingHandlerAction, LABELING_HANDLER_ACTIONS } = require('./label-actions-shared');
 
 async function assignPriority(context, priority) {
   const {
@@ -48,44 +54,18 @@ async function assignPriority(context, priority) {
 
 async function addCard(context) {
   const {
-    issue: { node_id: issueId, number },
-    repository,
+    issue: { number },
   } = context.payload;
 
-  const { node_id: repoId } = repository;
-
-  const accessJwt = await getAccessJwt();
-  const zubeCard = await getZubeCard(context, accessJwt);
-  if (zubeCard) {
-    const { workspace_id: workspaceId, category_name: category, priority } = zubeCard;
-
-    const workspace = await zubeRequest({
-      endpoint: `workspaces/${workspaceId}`,
-      accessJwt,
-    });
-
-    const { nodes: columns } = await getColumnsByProjectName({
-      context,
-      repoId,
-      projectName: workspace.name,
-    });
-    // get column matching Zube category
-    const searchCategory = category.toLowerCase();
-    const column = columns.find((c) => c.name.toLowerCase() === searchCategory);
-    if (column) {
-      // add project card to that matching column from matching project
-      context.github.graphql(ADD_PROJECT_CARD, {
-        input: {
-          projectColumnId: column.id,
-          contentId: issueId,
-        },
-      });
-
+  const { zubeWorkspace, zubeCategory, priority } = await getZubeCardDetails(context);
+  if (zubeWorkspace) {
+    const result = await addCardToProject({ context, zubeWorkspace, zubeCategory });
+    if (result) {
       if (priority !== null) {
         await assignPriority(context, priority);
       }
     } else {
-      logInfo(`Could not match '${searchCategory}' to GitHub project column`);
+      logInfo(`Could not match '${zubeCategory.toLowerCase()}' to GitHub project column`);
     }
   } else {
     logInfo(`GitHub issue #${number} could not be found in Zube`);
@@ -96,6 +76,7 @@ module.exports = async function onIssueLabeled(context) {
   const {
     label: addedLabel,
     issue: { node_id: issueId, number },
+    repository: { node_id: repoId },
   } = context.payload;
 
   // Zube label?
@@ -103,16 +84,52 @@ module.exports = async function onIssueLabeled(context) {
     const { node } = await context.github.graphql(GET_PROJECT_FROM_ISSUE, {
       id: issueId,
     });
-
     const { nodes: projectCards } = node.projectCards;
     const [projectCardNode] = projectCards;
-
     if (projectCardNode) {
-      await moveProjectCard({
-        context,
-        projectCardNode,
-        newColumn: addedLabel.name,
+      const { DELETE_CARD, MOVE_CARD_PROJECT, MOVE_CARD_COLUMN } = LABELING_HANDLER_ACTIONS;
+      const { zubeWorkspace, zubeCategory } = await getZubeCardDetails(context);
+      const action = getLabelingHandlerAction({
+        action: context.action,
+        zubeWorkspace,
+        gitHubProject: projectCardNode.project,
+        zubeCategory,
+        gitHubColumn: projectCardNode.column,
       });
+      if (action === DELETE_CARD) {
+        await context.github.graphql(DELETE_PROJECT_CARD, {
+          input: {
+            cardId: projectCardNode.node_id,
+          },
+        });
+      }
+
+      if (action === MOVE_CARD_COLUMN) {
+        moveProjectCard({ context, projectCardNode, newColumn: addedLabel.name });
+      }
+
+      if (action === MOVE_CARD_PROJECT) {
+        const projectColumns = await getColumnsByProjectName({
+          context,
+          repoId,
+          projectName: zubeWorkspace.name,
+        });
+
+        if (projectColumns.length) {
+          await context.github.graphql(DELETE_PROJECT_CARD, {
+            input: {
+              cardId: projectCardNode.node_id,
+            },
+          });
+          await addCardToProject({ context, zubeWorkspace, zubeCategory });
+        } else {
+          await context.github.graphql(DELETE_PROJECT_CARD, {
+            input: {
+              cardId: projectCardNode.node_id,
+            },
+          });
+        }
+      }
     } else {
       await addCard(context);
     }
