@@ -12,10 +12,12 @@ function getLabelingHandlerAction({
     return DELETE_CARD;
   }
   // does that project exist in GitHub?
+  console.log('zubeWorkspace', zubeWorkspace);
+  console.log('gitHubProject', gitHubProject);
   if (zubeWorkspace.name.toLowerCase() !== gitHubProject.name.toLowerCase()) {
     return MOVE_CARD_PROJECT;
   }
-
+  console.log('gitHubColumn', gitHubColumn);
   if (gitHubColumn && zubeCategory.toLowerCase() !== gitHubColumn.name.toLowerCase()) {
     return MOVE_CARD_COLUMN;
   }
