@@ -1,17 +1,22 @@
+const { logInfo } = require('./error-handler');
 const { GET_PROJECT_CARD_FROM_ISSUE, DELETE_PROJECT_CARD } = require('./graphql/project-card');
 const { getZubeCardDetails, addCardToProject, moveProjectCard } = require('./shared');
 const { LABELING_HANDLER_ACTIONS, getLabelingHandlerAction } = require('./label-actions-shared');
 
 module.exports = async function onIssueUnlabeled(context) {
-  const { issue, label } = context.payload;
+  const {
+    issue: { node_id: id, number },
+    label,
+  } = context.payload;
 
   if (label.name.includes('[zube]: ')) {
+    logInfo(`Label '${label.name}' removed from Issue #${number}`);
     const {
       node: {
         projectCards: { nodes: projectCards },
       },
     } = await context.github.graphql(GET_PROJECT_CARD_FROM_ISSUE, {
-      id: issue.node_id,
+      id,
     });
     const { zubeWorkspace, zubeCategory } = await getZubeCardDetails(context);
     const [projectCardNode] = projectCards;
@@ -32,10 +37,16 @@ module.exports = async function onIssueUnlabeled(context) {
             cardId: projectCardNode.node_id,
           },
         });
+        logInfo(`Zube card unassigned from board. Project card deleted for issue #${number}`);
       }
 
       if (action === MOVE_CARD_COLUMN) {
-        moveProjectCard({ context, projectCardNode, newColumn: `[zube]: ${zubeCategory.name}` });
+        await moveProjectCard({
+          context,
+          projectCardNode,
+          newColumn: `[zube]: ${zubeCategory.name}`,
+        });
+        logInfo(`Project card for issue #${number} is moved to ${label.name}`);
       }
 
       if (action === MOVE_CARD_PROJECT) {
@@ -45,6 +56,14 @@ module.exports = async function onIssueUnlabeled(context) {
           },
         });
         await addCardToProject({ context, zubeWorkspace, zubeCategory });
+        logInfo(`Project card for issue #${number} is moved to ${zubeWorkspace}: ${zubeCategory}`);
+      } else {
+        await context.github.graphql(DELETE_PROJECT_CARD, {
+          input: {
+            cardId: projectCardNode.node_id,
+          },
+        });
+        logInfo(`No matching project for ${zubeWorkspace} in GitHub`);
       }
     }
   }

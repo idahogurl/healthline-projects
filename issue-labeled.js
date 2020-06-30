@@ -81,8 +81,10 @@ module.exports = async function onIssueLabeled(context) {
 
   // Zube label?
   if (addedLabel.name.includes('[zube]')) {
+    logInfo(`New label '${addedLabel.name}' added to Issue #${number}`);
     const { node } = await context.github.graphql(GET_PROJECT_FROM_ISSUE, {
       id: issueId,
+      number,
     });
     const { nodes: projectCards } = node.projectCards;
     const [projectCardNode] = projectCards;
@@ -102,10 +104,12 @@ module.exports = async function onIssueLabeled(context) {
             cardId: projectCardNode.node_id,
           },
         });
+        logInfo(`Zube card unassigned from board. Project card deleted for issue #${number}`);
       }
 
       if (action === MOVE_CARD_COLUMN) {
-        moveProjectCard({ context, projectCardNode, newColumn: addedLabel.name });
+        await moveProjectCard({ context, projectCardNode, newColumn: addedLabel.name });
+        logInfo(`Project card for issue #${number} is moved to ${addedLabel.name}`);
       }
 
       if (action === MOVE_CARD_PROJECT) {
@@ -122,16 +126,21 @@ module.exports = async function onIssueLabeled(context) {
             },
           });
           await addCardToProject({ context, zubeWorkspace, zubeCategory });
+          logInfo(
+            `Project card for issue #${number} is moved to ${zubeWorkspace}: ${zubeCategory}`,
+          );
         } else {
           await context.github.graphql(DELETE_PROJECT_CARD, {
             input: {
               cardId: projectCardNode.node_id,
             },
           });
+          logInfo(`No matching project for ${zubeWorkspace} in GitHub`);
         }
       }
     } else {
       await addCard(context);
+      logInfo(`Project card for issue #${number} is added`);
     }
   }
 
