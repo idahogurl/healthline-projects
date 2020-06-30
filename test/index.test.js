@@ -43,20 +43,6 @@ describe('My Probot app', () => {
     await probot.receive({ name: 'issues', payload: issuesLabeled });
   });
 
-  test('issues.unlabeled', async () => {
-    const issuesUnlabeled = { ...issuesLabeled };
-    issuesUnlabeled.action = 'unlabeled';
-    issuesUnlabeled.issue.node_id = 1;
-    await probot.receive({ name: 'issues', payload: issuesUnlabeled });
-  });
-
-  test('issues.unlabeled no project cards', async () => {
-    const issuesUnlabeled = { ...issuesLabeled };
-    issuesUnlabeled.action = 'unlabeled';
-    issuesUnlabeled.issue.node_id = 2;
-    await probot.receive({ name: 'issues', payload: issuesLabeled });
-  });
-
   test('project_card.created no Zube label', async () => {
     projectCardCreated.project_card.node_id = 1;
     await probot.receive({ name: 'project_card', payload: projectCardCreated });
