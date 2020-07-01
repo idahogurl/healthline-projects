@@ -20,7 +20,7 @@ async function onError(e, context) {
 
 async function logInfo(s, target) {
   if (process.env.ENV === 'prod' && target === 'rollbar') {
-    // console.log(s);
+    console.log(s);
     return rollbar.info(s);
   }
   // eslint-disable-next-line no-console
