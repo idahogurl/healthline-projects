@@ -7,6 +7,7 @@ const {
 } = require('./graphql/project-card');
 const { GET_PROJECT_COLUMNS } = require('./graphql/project');
 const { GET_LABEL } = require('./graphql/label');
+const addLabel = require('./card-moved');
 
 function getMatchingColumn({ columns, newColumn, currentColumn }) {
   const newColumnName = newColumn.toLowerCase().replace('[zube]: ', '');
@@ -14,6 +15,29 @@ function getMatchingColumn({ columns, newColumn, currentColumn }) {
     // card already in new column
   }
   return columns && columns.find((c) => c.name.toLowerCase() === newColumnName);
+}
+
+async function findLabel(context, search) {
+  // get the matching label
+  const {
+    name: repoName,
+    owner: { login },
+  } = context.payload.repository;
+  const {
+    repository: {
+      labels: { nodes: labelNodes },
+    },
+  } = await context.github.graphql(GET_LABEL, {
+    name: repoName,
+    owner: login,
+    search,
+  });
+
+  const label = labelNodes.find((l) => l.name.toLowerCase() === search.toLowerCase());
+  if (label) {
+    return label;
+  }
+  await logInfo(`Could not find '${search}' in GitHub labels`);
 }
 
 async function getZubeCard(context, accessJwt) {
@@ -95,12 +119,14 @@ async function addCardToProject({ context, zubeWorkspace, zubeCategory }) {
   const column = columns.length && columns.find((c) => c.name.toLowerCase() === searchCategory);
   if (column) {
     // add project card to that matching column from matching project
-    return context.github.graphql(ADD_PROJECT_CARD, {
+    await context.github.graphql(ADD_PROJECT_CARD, {
       input: {
         projectColumnId: column.id,
         contentId: issueId,
       },
     });
+
+    await addLabel(context);
   }
 }
 
@@ -124,29 +150,6 @@ async function moveProjectCard({
       },
     });
   }
-}
-
-async function findLabel(context, search) {
-  // get the matching label
-  const {
-    name: repoName,
-    owner: { login },
-  } = context.payload.repository;
-  const {
-    repository: {
-      labels: { nodes: labelNodes },
-    },
-  } = await context.github.graphql(GET_LABEL, {
-    name: repoName,
-    owner: login,
-    search,
-  });
-
-  const label = labelNodes.find((l) => l.name.toLowerCase() === search.toLowerCase());
-  if (label) {
-    return label;
-  }
-  await logInfo(`Could not find '${search}' in GitHub labels`);
 }
 
 module.exports = {
