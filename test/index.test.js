@@ -1,9 +1,22 @@
-// const issueCreatedBody = { body: 'Thanks for opening this issue!' };
 /* eslint-env jest, node */
 const nock = require('nock');
 const { Probot } = require('probot');
 const fs = require('fs');
 const path = require('path');
+const shared = require('../shared');
+const projectCard = require('../project-card');
+
+jest.mock('../shared');
+jest.mock('../project-card');
+console.log(projectCard);
+function spyOnObject(fileName, module) {
+  const actual = jest.requireActual(fileName);
+
+  const functions = Object.keys(module);
+  functions.forEach((f) => {
+    module[f].mockImplementation(async (...args) => actual[f].apply(null, args));
+  });
+}
 
 // Requiring our app implementation
 const myProbotApp = require('..');
@@ -19,6 +32,8 @@ describe('My Probot app', () => {
   let mockCert;
 
   beforeAll((done) => {
+    spyOnObject('../shared', shared);
+    spyOnObject('../project-card', projectCard);
     fs.readFile(path.join(__dirname, 'fixtures/mock-cert.pem'), (err, cert) => {
       if (err) return done(err);
       mockCert = cert;
@@ -33,11 +48,23 @@ describe('My Probot app', () => {
     probot.load(myProbotApp);
   });
 
-  test('issues.labeled', async () => {
+  test('issues.labeled with project cards', async () => {
     issuesLabeled.issue.node_id = 1;
     await probot.receive({ name: 'issues', payload: issuesLabeled });
+    expect(shared.getZubeCardDetails).toHaveBeenCalled();
   });
 
+  test('issues.labeled diff project', async () => {
+    issuesLabeled.issue.node_id = 3;
+    await probot.receive({ name: 'issues', payload: issuesLabeled });
+    expect(projectCard.deleteProjectCard).toHaveBeenCalled();
+  });
+
+  test('issues.unlabeled', async () => {});
+
+  // test('issues.unlabeled', async () => {
+
+  // });
   test('issues.labeled no project cards', async () => {
     issuesLabeled.issue.node_id = 2;
     await probot.receive({ name: 'issues', payload: issuesLabeled });

@@ -20,11 +20,11 @@ async function onError(e, context) {
 
 async function logInfo(s) {
   if (process.env.ENV === 'prod') {
-    console.log(s);
+    // console.log(s);
     return rollbar.info(s);
   }
   // eslint-disable-next-line no-console
-  console.log(s);
+  // console.log(s);
 }
 
 module.exports = {

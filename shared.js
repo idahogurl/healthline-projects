@@ -6,7 +6,9 @@ const {
   ADD_PROJECT_CARD,
 } = require('./graphql/project-card');
 const { GET_PROJECT_COLUMNS } = require('./graphql/project');
-const { GET_LABEL, REMOVE_LABEL, ADD_LABEL } = require('./graphql/label');
+const {
+  GET_LABEL, REMOVE_LABEL, ADD_LABEL, GET_ISSUE_LABELS,
+} = require('./graphql/label');
 
 function getMatchingColumn({ columns, newColumn, currentColumn }) {
   const newColumnName = newColumn.toLowerCase().replace('[zube]: ', '');
@@ -43,7 +45,6 @@ async function getZubeCard(context, accessJwt) {
   const {
     issue: { title, number },
   } = context.payload;
-
   // find the Zube card
   const search = title.split(' ').slice(0, 5).join(' ');
   // get first 5 words to speed up request
@@ -56,7 +57,6 @@ async function getZubeCard(context, accessJwt) {
   const zubeCard = data
     .filter((d) => d.github_issue !== null)
     .find((d) => d.github_issue.number === number);
-
   return zubeCard;
 }
 
@@ -72,6 +72,7 @@ async function getZubeCardDetails(context) {
     endpoint: `workspaces/${workspaceId}`,
     accessJwt,
   });
+  console.log({ zubeWorkspace, zubeCategory, priority });
   return { zubeWorkspace, zubeCategory, priority };
 }
 
@@ -90,39 +91,31 @@ async function getIssueFromCard(context) {
   }
 }
 
-async function addLabel(context) {
-  const result = await getIssueFromCard(context);
-  if (result) {
-    const {
-      issue,
-      column: { name: columnName },
-    } = result;
-    const {
-      labels: { nodes: labels },
-    } = issue;
-    // find Zube label in issue's assigned labels
-    const newLabel = `[zube]: ${columnName}`.toLowerCase();
-    const currentLabel = labels.find((l) => l.name.includes('[zube]'));
+async function addLabel(context, issue, newLabel) {
+  const {
+    labels: { nodes: labels },
+  } = issue;
+  // find Zube label in issue's assigned labels
+  const currentLabel = labels.find((l) => l.name.includes('[zube]'));
 
-    if (currentLabel && currentLabel.name.toLowerCase() === newLabel) {
-      // do not remove since issue already has label assigned
-    } else {
-      const label = await findLabel(context, newLabel);
-      if (label) {
-        if (currentLabel) {
-          await context.github.graphql(REMOVE_LABEL, {
-            labelableId: issue.id,
-            labelIds: [currentLabel.id],
-          });
-        }
-
-        await context.github.graphql(ADD_LABEL, {
+  if (currentLabel && currentLabel.name.toLowerCase() === newLabel) {
+    // do not remove since issue already has label assigned
+  } else {
+    const label = await findLabel(context, newLabel);
+    if (label) {
+      if (currentLabel) {
+        await context.github.graphql(REMOVE_LABEL, {
           labelableId: issue.id,
-          labelIds: [label.id],
+          labelIds: [currentLabel.id],
         });
-      } else {
-        // do nothing
       }
+
+      await context.github.graphql(ADD_LABEL, {
+        labelableId: issue.id,
+        labelIds: [label.id],
+      });
+    } else {
+      // do nothing
     }
   }
 }
@@ -161,8 +154,10 @@ async function addCardToProject({ context, zubeWorkspace, zubeCategory }) {
         contentId: issueId,
       },
     });
-
-    await addLabel(context);
+    const { node: issue } = await context.github.graphql(GET_ISSUE_LABELS, {
+      id: issueId,
+    });
+    await addLabel(context, issue, `[zube]: ${zubeCategory}`);
   }
 }
 

@@ -1,0 +1,21 @@
+{
+  "data": {
+    "node": {
+      "id": "MDU6SXNzdWU2Mjc4MDQ0ODE=",
+      "number": 9818,
+      "title": "MNT program pages show \"Healthline\" in title",
+      "labels": {
+        "nodes": [
+          {
+            "id": "MDU6TGFiZWwyMTI0MzQzNTIz",
+            "name": "[zube]: In Progress"
+          },
+          {
+            "id": "MDU6TGFiZWw5ODc5MzM5NjM=",
+            "name": "bug"
+          }
+        ]
+      }
+    }
+  }
+}
