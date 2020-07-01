@@ -6,8 +6,7 @@ const {
   ADD_PROJECT_CARD,
 } = require('./graphql/project-card');
 const { GET_PROJECT_COLUMNS } = require('./graphql/project');
-const { GET_LABEL } = require('./graphql/label');
-const addLabel = require('./card-moved');
+const { GET_LABEL, REMOVE_LABEL, ADD_LABEL } = require('./graphql/label');
 
 function getMatchingColumn({ columns, newColumn, currentColumn }) {
   const newColumnName = newColumn.toLowerCase().replace('[zube]: ', '');
@@ -91,6 +90,43 @@ async function getIssueFromCard(context) {
   }
 }
 
+async function addLabel(context) {
+  const result = await getIssueFromCard(context);
+  if (result) {
+    const {
+      issue,
+      column: { name: columnName },
+    } = result;
+    const {
+      labels: { nodes: labels },
+    } = issue;
+    // find Zube label in issue's assigned labels
+    const newLabel = `[zube]: ${columnName}`.toLowerCase();
+    const currentLabel = labels.find((l) => l.name.includes('[zube]'));
+
+    if (currentLabel && currentLabel.name.toLowerCase() === newLabel) {
+      // do not remove since issue already has label assigned
+    } else {
+      const label = await findLabel(context, newLabel);
+      if (label) {
+        if (currentLabel) {
+          await context.github.graphql(REMOVE_LABEL, {
+            labelableId: issue.id,
+            labelIds: [currentLabel.id],
+          });
+        }
+
+        await context.github.graphql(ADD_LABEL, {
+          labelableId: issue.id,
+          labelIds: [label.id],
+        });
+      } else {
+        // do nothing
+      }
+    }
+  }
+}
+
 async function getColumnsByProjectName({ context, repoId, projectName }) {
   const { node: repoNode } = await context.github.graphql(GET_PROJECT_COLUMNS, {
     id: repoId,
@@ -161,4 +197,5 @@ module.exports = {
   addCardToProject,
   moveProjectCard,
   findLabel,
+  addLabel,
 };
