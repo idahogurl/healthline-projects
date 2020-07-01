@@ -8,7 +8,7 @@ const projectCard = require('../project-card');
 
 jest.mock('../shared');
 jest.mock('../project-card');
-console.log(projectCard);
+
 function spyOnObject(fileName, module) {
   const actual = jest.requireActual(fileName);
 
@@ -62,9 +62,6 @@ describe('My Probot app', () => {
 
   test('issues.unlabeled', async () => {});
 
-  // test('issues.unlabeled', async () => {
-
-  // });
   test('issues.labeled no project cards', async () => {
     issuesLabeled.issue.node_id = 2;
     await probot.receive({ name: 'issues', payload: issuesLabeled });
@@ -104,6 +101,7 @@ describe('My Probot app', () => {
   afterEach(() => {
     nock.cleanAll();
     nock.enableNetConnect();
+    jest.clearAllMocks();
   });
 });
 

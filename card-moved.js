@@ -1,4 +1,4 @@
-const { addLabel, getIssueFromCard } = require('./shared');
+const { addLabel, getIssueFromCard, moveZubeCard } = require('./shared');
 
 module.exports = async function onCardMoved(context) {
   const result = await getIssueFromCard(context);
@@ -7,7 +7,9 @@ module.exports = async function onCardMoved(context) {
       issue,
       column: { name },
     } = result;
+    // move to different board in Zube
     const label = `[zube]: ${name}`;
     await addLabel(context, issue, label);
+    await moveZubeCard(issue, result);
   }
 };

@@ -38,7 +38,7 @@ async function findLabel(context, search) {
   if (label) {
     return label;
   }
-  await logInfo(`Could not find '${search}' in GitHub labels`);
+  await logInfo(`Could not find '${search}' in GitHub labels`, 'rollbar');
 }
 
 async function getZubeCard(context, accessJwt) {
@@ -72,8 +72,38 @@ async function getZubeCardDetails(context) {
     endpoint: `workspaces/${workspaceId}`,
     accessJwt,
   });
-  console.log({ zubeWorkspace, zubeCategory, priority });
+
   return { zubeWorkspace, zubeCategory, priority };
+}
+async function moveZubeCard(issue, result) {
+  const accessJwt = await getAccessJwt();
+  // card created in GitHub, move Zube ticket from triage to matching board & category
+  const zubeCard = await getZubeCard({ payload: { issue } }, accessJwt);
+  const {
+    name: columnName,
+    project: { name: projectName },
+  } = result.column;
+  // find workspace matching card column
+  const { data } = await zubeRequest({
+    endpoint: `workspaces?where[name]=${projectName}`,
+    accessJwt,
+  });
+  const [workspace] = data;
+  if (workspace) {
+    await zubeRequest({
+      endpoint: `cards/${zubeCard.id}/move`,
+      accessJwt,
+      body: {
+        destination: {
+          position: 0,
+          type: 'category',
+          name: columnName,
+          workspace_id: workspace.id,
+        },
+      },
+      method: 'PUT',
+    });
+  }
 }
 
 async function getIssueFromCard(context) {
@@ -98,7 +128,7 @@ async function addLabel(context, issue, newLabel) {
   // find Zube label in issue's assigned labels
   const currentLabel = labels.find((l) => l.name.includes('[zube]'));
 
-  if (currentLabel && currentLabel.name.toLowerCase() === newLabel) {
+  if (currentLabel && currentLabel.name.toLowerCase() === newLabel.toLowerCase()) {
     // do not remove since issue already has label assigned
   } else {
     const label = await findLabel(context, newLabel);
@@ -187,6 +217,7 @@ module.exports = {
   getMatchingColumn,
   getZubeCard,
   getZubeCardDetails,
+  moveZubeCard,
   getIssueFromCard,
   getColumnsByProjectName,
   addCardToProject,
