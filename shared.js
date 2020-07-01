@@ -223,5 +223,4 @@ module.exports = {
   addCardToProject,
   moveProjectCard,
   findLabel,
-  addLabel,
 };
