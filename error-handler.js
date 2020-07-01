@@ -18,8 +18,8 @@ async function onError(e, context) {
   throw e;
 }
 
-async function logInfo(s) {
-  if (process.env.ENV === 'prod') {
+async function logInfo(s, target) {
+  if (process.env.ENV === 'prod' && target === 'rollbar') {
     console.log(s);
     return rollbar.info(s);
   }

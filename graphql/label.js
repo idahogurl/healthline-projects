@@ -1,3 +1,19 @@
+const GET_ISSUE_LABELS = `
+query getIssueLabels($id: ID!) {
+  node(id: $id) {
+    id
+    ... on Issue {
+      labels(first: 20) {
+        nodes {
+          id
+          name
+        }
+      }
+    }
+  }
+}
+`;
+
 const GET_LABEL = `
 query getLabel($name: String!, $owner: String!, $search: String!) {
   repository(name: $name, owner: $owner) {
@@ -31,4 +47,5 @@ module.exports = {
   GET_LABEL,
   ADD_LABEL,
   REMOVE_LABEL,
+  GET_ISSUE_LABELS,
 };

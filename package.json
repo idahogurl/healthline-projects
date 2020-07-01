@@ -18,7 +18,7 @@
     "start": "probot run ./index.js",
     "lint": "eslint",
     "test": "ENV=dev yarn lint && jest",
-    "test:watch": "ENV=dev jest --watch --notify --notifyMode=change --coverage"
+    "test:watch": "ENV=dev jest --watch --notify --notifyMode=change --coverage -t"
   },
   "dependencies": {
     "dotenv": "^8.2.0",

@@ -15,11 +15,10 @@ HANDLER LOGIC
 
 const {
   getIssueFromCard,
-  getZubeCard,
+  moveZubeCard,
   getColumnsByProjectName,
   moveProjectCard,
 } = require('./shared');
-const { getAccessJwt, zubeRequest } = require('./zube');
 
 module.exports = async function onCardCreated(context) {
   const {
@@ -54,35 +53,7 @@ module.exports = async function onCardCreated(context) {
           projectColumns: columns,
         });
       }
-    } else {
-      const accessJwt = await getAccessJwt();
-      // card created in GitHub, move Zube ticket from triage to matching board & category
-      const zubeCard = await getZubeCard({ payload: { issue } }, accessJwt);
-      const {
-        name: columnName,
-        project: { name: projectName },
-      } = result.column;
-      // find workspace matching card column
-      const { data } = await zubeRequest({
-        endpoint: `workspaces?where[name]=${projectName}`,
-        accessJwt,
-      });
-      const [workspace] = data;
-      if (workspace) {
-        await zubeRequest({
-          endpoint: `cards/${zubeCard.id}/move`,
-          accessJwt,
-          body: {
-            destination: {
-              position: 0,
-              type: 'category',
-              name: columnName,
-              workspace_id: workspace.id,
-            },
-          },
-          method: 'PUT',
-        });
-      }
+      await moveZubeCard(issue, result);
     }
   }
 };

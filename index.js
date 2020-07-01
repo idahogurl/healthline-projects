@@ -1,5 +1,6 @@
 const { onError } = require('./error-handler');
 const onIssueLabeled = require('./issue-labeled');
+const onIssueUnlabeled = require('./issue-unlabeled');
 const onProjectCardCreated = require('./card-created');
 const onProjectCardMoved = require('./card-moved');
 
@@ -15,7 +16,15 @@ module.exports = (app) => {
     // "Add to Source" opens the card and then labels it
     app.on('issues.labeled', async (context) => {
       try {
-        onIssueLabeled(context);
+        return onIssueLabeled(context);
+      } catch (e) {
+        onError(e, context);
+      }
+    });
+
+    app.on('issues.unlabeled', (context) => {
+      try {
+        return onIssueUnlabeled(context);
       } catch (e) {
         onError(e, context);
       }
@@ -23,7 +32,7 @@ module.exports = (app) => {
 
     app.on('project_card.created', async (context) => {
       try {
-        onProjectCardCreated(context);
+        return onProjectCardCreated(context);
       } catch (e) {
         onError(e, context);
       }

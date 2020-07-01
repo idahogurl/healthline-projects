@@ -38,6 +38,10 @@ query getProjectCardFromIssue($id: ID!) {
         projectCards(first: 1) {
          nodes {
             node_id: id
+            column {
+              id
+              name
+            }
             project {
               id
               name
