@@ -1,0 +1,17 @@
+{
+    "action": "opened",
+    "issue": {
+      "id": 651840160,
+      "node_id": "MDU6SXNzdWU2NTE4NDAxNjA=",
+      "number": 10167,
+      "title": "MNT Reference Template v1.1 - Collapsable H2"
+    },
+    "repository": {
+        "id": 186853002,
+        "node_id": "MDEwOlJlcG9zaXRvcnkxODY4NTMwMDI=",
+        "name": "Hello-World",
+        "owner": {
+          "login": "Codertocat"
+        }
+    }
+  }

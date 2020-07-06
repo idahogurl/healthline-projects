@@ -24,6 +24,7 @@ const myProbotApp = require('..');
 const projectCardCreated = require('./fixtures/github/project-card-created.json');
 const projectCardMoved = require('./fixtures/github/project-card-moved.json');
 const issuesLabeled = require('./fixtures/github/issues-labeled.json');
+const issuesOpened = require('./fixtures/github/issues-labeled.json');
 
 jest.setTimeout(20000); // 1 second
 
@@ -46,6 +47,11 @@ describe('My Probot app', () => {
     probot = new Probot({ id: 123, cert: mockCert });
     // Load our app into probot
     probot.load(myProbotApp);
+  });
+
+  test('issue.opened', async () => {
+    issuesOpened.issue.node_id = 2;
+    await probot.receive({ name: 'issues', payload: issuesOpened });
   });
 
   test('issues.labeled with project cards', async () => {
