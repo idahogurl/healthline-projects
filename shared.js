@@ -121,12 +121,14 @@ async function getIssueFromCard(context) {
   }
 }
 
-async function addLabel(context, issue, newLabel) {
+async function addLabel({
+  context, issue, existingLabelRegex, newLabel,
+}) {
   const {
     labels: { nodes: labels },
   } = issue;
   // find Zube label in issue's assigned labels
-  const currentLabel = labels.find((l) => l.name.includes('[zube]'));
+  const currentLabel = labels.find((l) => existingLabelRegex.test(l.name));
 
   if (currentLabel && currentLabel.name.toLowerCase() === newLabel.toLowerCase()) {
     // do not remove since issue already has label assigned
@@ -163,7 +165,9 @@ async function getColumnsByProjectName({ context, repoId, projectName }) {
   return {};
 }
 
-async function addCardToProject({ context, zubeWorkspace, zubeCategory }) {
+async function addCardToProject({
+  context, zubeWorkspace, zubeCategory, priority,
+}) {
   const {
     issue: { node_id: issueId },
     repository: { node_id: repoId },
@@ -187,7 +191,21 @@ async function addCardToProject({ context, zubeWorkspace, zubeCategory }) {
     const { node: issue } = await context.github.graphql(GET_ISSUE_LABELS, {
       id: issueId,
     });
-    await addLabel(context, issue, `[zube]: ${zubeCategory}`);
+    await addLabel({
+      context,
+      issue,
+      existingLabelRegex: /\[zube\]:/,
+      newLabel: `[zube]: ${zubeCategory}`,
+    });
+    if (priority !== null) {
+      await addLabel({
+        context,
+        issue,
+        existingLabelRegex: /^P\d$/,
+        newLabel: `P${priority}`,
+      });
+    }
+    return true;
   }
 }
 

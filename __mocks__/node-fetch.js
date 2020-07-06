@@ -52,6 +52,9 @@ const fixtures = {
   'mutation addLabel': {
     clientMutationId: '12345',
   },
+  'mutation addProjectCard': {
+    clientMutationId: '12345',
+  },
 };
 
 module.exports = {

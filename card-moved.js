@@ -9,7 +9,12 @@ module.exports = async function onCardMoved(context) {
     } = result;
     // move to different board in Zube
     const label = `[zube]: ${name}`;
-    await addLabel(context, issue, label);
+    await addLabel({
+      context,
+      issue,
+      existingLabelRegex: /\[zube\]:/,
+      newLabel: label,
+    });
     await moveZubeCard(issue, result);
   }
 };

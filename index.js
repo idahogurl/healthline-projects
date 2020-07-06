@@ -1,4 +1,5 @@
 const { onError } = require('./error-handler');
+const onIssueOpened = require('./issue-opened');
 const onIssueLabeled = require('./issue-labeled');
 const onIssueUnlabeled = require('./issue-unlabeled');
 const onProjectCardCreated = require('./card-created');
@@ -13,7 +14,14 @@ require('dotenv').config();
 module.exports = (app) => {
   app.log('Yay, the app was loaded!');
   try {
-    // "Add to Source" opens the card and then labels it
+    app.on('issues.opened', async (context) => {
+      try {
+        return onIssueOpened(context);
+      } catch (e) {
+        onError(e, context);
+      }
+    });
+    // Zube uses GitHub labels to set the issue's project column (called "workspace categories" in Zube)
     app.on('issues.labeled', async (context) => {
       try {
         return onIssueLabeled(context);

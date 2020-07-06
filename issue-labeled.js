@@ -24,32 +24,12 @@ When a user moves card in Zube:
 */
 const { getAccessJwt, zubeRequest } = require('./zube');
 const {
-  getZubeCard,
-  moveProjectCard,
-  findLabel,
-  getZubeCardDetails,
-  addCardToProject,
+  getZubeCard, moveProjectCard, getZubeCardDetails, addCardToProject,
 } = require('./shared');
 const { deleteProjectCard } = require('./project-card');
 const { logInfo } = require('./error-handler');
 const { GET_PROJECT_FROM_ISSUE } = require('./graphql/project');
-const { ADD_LABEL } = require('./graphql/label');
 const { getLabelingHandlerAction, LABELING_HANDLER_ACTIONS } = require('./label-actions-shared');
-
-async function assignPriority(context, priority) {
-  const {
-    issue: { node_id: issueId },
-  } = context.payload;
-
-  const search = `P${priority}`;
-  const label = await findLabel(context, search);
-  if (label) {
-    await context.github.graphql(ADD_LABEL, {
-      labelableId: issueId,
-      labelIds: [label.id],
-    });
-  }
-}
 
 async function addCard(context) {
   const {
@@ -58,11 +38,14 @@ async function addCard(context) {
 
   const { zubeWorkspace, zubeCategory, priority } = await getZubeCardDetails(context);
   if (zubeWorkspace) {
-    const result = await addCardToProject({ context, zubeWorkspace, zubeCategory });
+    const result = await addCardToProject({
+      context,
+      zubeWorkspace,
+      zubeCategory,
+      priority,
+    });
     if (result) {
-      if (priority !== null) {
-        await assignPriority(context, priority);
-      }
+      // nop
     } else {
       await logInfo(
         `Could not match '${zubeCategory.toLowerCase()}' to GitHub project column`,
