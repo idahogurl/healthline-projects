@@ -1,5 +1,5 @@
 const { addCardToProject, getZubeCardDetails } = require('./shared');
-const { logInfo } = require('./shared');
+const { logInfo } = require('./error-handler');
 
 module.exports = async function onIssueOpened(context) {
   const {

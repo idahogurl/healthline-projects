@@ -21,7 +21,8 @@ module.exports = (app) => {
         onError(e, context);
       }
     });
-    // Zube uses GitHub labels to set the issue's project column (called "workspace categories" in Zube)
+    // Zube uses GitHub labels to set the issue's project column
+    // (called "workspace categories" in Zube)
     app.on('issues.labeled', async (context) => {
       try {
         return onIssueLabeled(context);
