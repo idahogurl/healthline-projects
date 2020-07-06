@@ -222,5 +222,6 @@ module.exports = {
   getColumnsByProjectName,
   addCardToProject,
   moveProjectCard,
+  addLabel,
   findLabel,
 };
