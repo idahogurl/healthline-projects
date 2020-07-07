@@ -25,15 +25,15 @@ module.exports = (app) => {
     // (called "workspace categories" in Zube)
     app.on('issues.labeled', async (context) => {
       try {
-        return onIssueLabeled(context);
+        await onIssueLabeled(context);
       } catch (e) {
         onError(e, context);
       }
     });
 
-    app.on('issues.unlabeled', (context) => {
+    app.on('issues.unlabeled', async (context) => {
       try {
-        return onIssueUnlabeled(context);
+        await onIssueUnlabeled(context);
       } catch (e) {
         onError(e, context);
       }
@@ -41,7 +41,7 @@ module.exports = (app) => {
 
     app.on('project_card.created', async (context) => {
       try {
-        return onProjectCardCreated(context);
+        await onProjectCardCreated(context);
       } catch (e) {
         onError(e, context);
       }
@@ -49,7 +49,7 @@ module.exports = (app) => {
 
     app.on('project_card.moved', async (context) => {
       try {
-        return onProjectCardMoved(context);
+        await onProjectCardMoved(context);
       } catch (e) {
         onError(e, context);
       }

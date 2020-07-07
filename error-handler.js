@@ -10,7 +10,7 @@ const rollbar = new Rollbar({
 
 async function onError(e, context) {
   if (process.env.ENV === 'prod') {
-    return rollbar.error(e, context.payload, { level: 'info' });
+    rollbar.error(e, context.payload);
   }
   // eslint-disable-next-line no-console
   console.error(e, context.payload);
