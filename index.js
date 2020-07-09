@@ -1,3 +1,4 @@
+const logger = require('./logger');
 const { onError } = require('./error-handler');
 const onIssueOpened = require('./issue-opened');
 const onIssueLabeled = require('./issue-labeled');
@@ -12,6 +13,10 @@ require('dotenv').config();
  * @param {import('probot').Application} app
  */
 module.exports = (app) => {
+  // if (process.env.ENV === 'dev') {
+  //   logger(app.log.target);
+  // }
+  console.log(app.log.target.streams);
   app.log('Yay, the app was loaded!');
   try {
     app.on('issues.opened', async (context) => {
@@ -41,7 +46,9 @@ module.exports = (app) => {
 
     app.on('project_card.created', async (context) => {
       try {
-        await onProjectCardCreated(context);
+        await onProjectCardCreated(context).catch((e) => {
+          onError(e, context);
+        });
       } catch (e) {
         onError(e, context);
       }

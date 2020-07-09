@@ -21,7 +21,11 @@
     "test:watch": "ENV=dev jest --watch --notify --notifyMode=change --coverage -t"
   },
   "dependencies": {
+    "bunyan": "^1.8.14",
+    "bunyan-loggly": "^1.4.2",
+    "bunyan-rollbar": "^0.1.0",
     "dotenv": "^8.2.0",
+    "dtrace-provider": "^0.8.8",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.15",
     "probot": "^9.5.3",
@@ -40,7 +44,7 @@
     "smee-client": "^1.1.0"
   },
   "engines": {
-    "node": ">= 8.3.0",
+    "node": ">= 10.21.0",
     "yarn": "^1.22.0"
   },
   "standard": {
