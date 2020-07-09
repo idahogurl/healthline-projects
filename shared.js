@@ -1,5 +1,5 @@
 const { zubeRequest, getAccessJwt } = require('./zube');
-const { logWarning, logQueryTime } = require('./logger');
+const { logWarning } = require('./logger');
 const {
   GET_ISSUE_FROM_PROJECT_CARD,
   MOVE_PROJECT_CARD,
@@ -25,7 +25,6 @@ async function findLabel(context, search) {
     owner: { login },
   } = context.payload.repository;
 
-  const start = new Date();
   const {
     repository: {
       labels: { nodes: labelNodes },
@@ -35,7 +34,6 @@ async function findLabel(context, search) {
     owner: login,
     search,
   });
-  logQueryTime({ context, query: GET_LABEL, start });
 
   const label = labelNodes.find((l) => l.name.toLowerCase() === search.toLowerCase());
   if (label) {
@@ -112,14 +110,8 @@ async function moveZubeCard(context, result) {
 async function getIssueFromCard(context) {
   const { project_card: projectCardNode } = context.payload;
   // get column of project card
-  const start = new Date();
   const { node: projectCard } = await context.github.graphql(GET_ISSUE_FROM_PROJECT_CARD, {
     id: projectCardNode.node_id,
-  });
-  logQueryTime({
-    context,
-    query: GET_ISSUE_FROM_PROJECT_CARD,
-    start,
   });
   // get the column & issue from event's project card
   const { column, content: issue } = projectCard;
@@ -144,28 +136,15 @@ async function addLabel({
   } else {
     const label = await findLabel(context, newLabel);
     if (label) {
-      let start;
       if (currentLabel) {
-        start = new Date();
         await context.github.graphql(REMOVE_LABEL, {
           labelableId: issue.id,
           labelIds: [currentLabel.id],
         });
-        logQueryTime({
-          context,
-          query: REMOVE_LABEL,
-          start,
-        });
       }
-      start = new Date();
       await context.github.graphql(ADD_LABEL, {
         labelableId: issue.id,
         labelIds: [label.id],
-      });
-      logQueryTime({
-        context,
-        query: REMOVE_LABEL,
-        start,
       });
     } else {
       // do nothing
@@ -174,15 +153,9 @@ async function addLabel({
 }
 
 async function getColumnsByProjectName({ context, repoId, projectName }) {
-  const start = new Date();
   const { node: repoNode } = await context.github.graphql(GET_PROJECT_COLUMNS, {
     id: repoId,
     project: projectName,
-  });
-  logQueryTime({
-    context,
-    query: GET_PROJECT_COLUMNS,
-    start,
   });
   const [projectNode] = repoNode.projects.nodes;
   if (projectNode) {
@@ -207,7 +180,6 @@ async function addCardToProject({
   const searchCategory = zubeCategory.toLowerCase();
   const column = columns.length && columns.find((c) => c.name.toLowerCase() === searchCategory);
   if (column) {
-    const start = new Date();
     // add project card to that matching column from matching project
     await context.github.graphql(ADD_PROJECT_CARD, {
       input: {
@@ -215,18 +187,8 @@ async function addCardToProject({
         contentId: issueId,
       },
     });
-    logQueryTime({
-      context,
-      query: ADD_PROJECT_CARD,
-      start,
-    });
     const { node: issue } = await context.github.graphql(GET_ISSUE_LABELS, {
       id: issueId,
-    });
-    logQueryTime({
-      context,
-      query: GET_ISSUE_LABELS,
-      start,
     });
     await addLabel({
       context,
@@ -259,18 +221,11 @@ async function moveProjectCard({
   });
 
   if (matchingColumn) {
-    const start = new Date();
     await context.github.graphql(MOVE_PROJECT_CARD, {
       input: {
         cardId,
         columnId: matchingColumn.id,
       },
-    });
-
-    logQueryTime({
-      context,
-      query: MOVE_PROJECT_CARD,
-      start,
     });
   }
 }

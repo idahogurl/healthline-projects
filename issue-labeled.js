@@ -27,7 +27,7 @@ const {
   getZubeCard, moveProjectCard, getZubeCardDetails, addCardToProject,
 } = require('./shared');
 const { deleteProjectCard } = require('./project-card');
-const { logInfo } = require('./logger');
+const { logInfo, addLoggingToRequest } = require('./logger');
 const { GET_PROJECT_FROM_ISSUE } = require('./graphql/project');
 const { getLabelingHandlerAction, LABELING_HANDLER_ACTIONS } = require('./label-actions-shared');
 
@@ -55,6 +55,7 @@ async function addCard(context) {
 }
 
 module.exports = async function onIssueLabeled(context) {
+  addLoggingToRequest(context);
   const {
     label: addedLabel,
     issue: { node_id: issueId, number },

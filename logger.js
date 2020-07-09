@@ -16,8 +16,23 @@ async function logWarning(context, message) {
   context.log.warn(message);
 }
 
-function logQueryTime({ context, query, start }) {
-  context.log.info({ query, querytime_ms: new Date().getTime() - start.getTime() });
+function addLoggingToRequest(context) {
+  context.github.hook.wrap('request', async (request, options) => {
+    const time = Date.now();
+    const response = await request(options);
+    const {
+      url, method, query, variables, body,
+    } = options;
+    context.log.info({
+      url,
+      method,
+      body: query || body,
+      variables,
+      querytime_ms: Date.now() - time,
+      statusCode: response.status,
+    });
+    return response;
+  });
 }
 
 function addLoggerStreams(logger) {
@@ -64,6 +79,6 @@ module.exports = {
   onError,
   logInfo,
   logWarning,
-  logQueryTime,
+  addLoggingToRequest,
   addLoggerStreams,
 };

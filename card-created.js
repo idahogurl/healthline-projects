@@ -19,8 +19,10 @@ const {
   getColumnsByProjectName,
   moveProjectCard,
 } = require('./shared');
+const { addLoggingToRequest } = require('./logger');
 
 module.exports = async function onCardCreated(context) {
+  addLoggingToRequest(context);
   const {
     project_card: projectCardNode,
     repository: { node_id: repoId },

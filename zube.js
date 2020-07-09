@@ -1,16 +1,15 @@
 const fs = require('fs');
 const jsonwebtoken = require('jsonwebtoken'); // $ npm install jsonwebtoken
 const request = require('request-promise-native');
-const { logQueryTime } = require('./logger');
 
 require('dotenv').config();
 
 async function zubeRequest(context, {
   endpoint, accessJwt, body, method = 'GET',
 }) {
-  const uri = `https://zube.io/api/${encodeURI(endpoint)}`;
+  const url = `https://zube.io/api/${encodeURI(endpoint)}`;
   const start = new Date();
-  const response = await request(uri, {
+  const response = await request(url, {
     method,
     json: true,
     headers: {
@@ -20,10 +19,12 @@ async function zubeRequest(context, {
     auth: { bearer: accessJwt },
     body,
   });
-  logQueryTime({
-    context,
-    query: uri,
-    start,
+  context.log.info({
+    url,
+    method,
+    body,
+    statusCode: response.statusCode,
+    querytime_ms: new Date().getTime() - start.getTime(),
   });
   return response;
 }
