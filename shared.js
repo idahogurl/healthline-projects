@@ -76,13 +76,15 @@ async function getZubeCardDetails(context) {
   return { zubeWorkspace, zubeCategory, priority };
 }
 async function moveZubeCard(context, result) {
+  const { column, issue } = result;
   const accessJwt = await getAccessJwt(context);
   // card created in GitHub, move Zube ticket from triage to matching board & category
+  context.payload.issue = issue;
   const zubeCard = await getZubeCard(context, accessJwt);
   const {
     name: columnName,
     project: { name: projectName },
-  } = result.column;
+  } = column;
   // find workspace matching card column
   const { data } = await zubeRequest(context, {
     endpoint: `workspaces?where[name]=${projectName}`,

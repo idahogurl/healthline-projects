@@ -17,6 +17,6 @@ module.exports = async function onCardMoved(context) {
       existingLabelRegex: /\[zube\]:/,
       newLabel: label,
     });
-    await moveZubeCard(issue, result);
+    await moveZubeCard(context, result);
   }
 };

@@ -55,7 +55,7 @@ module.exports = async function onCardCreated(context) {
           projectColumns: columns,
         });
       }
-      await moveZubeCard(issue, result);
+      await moveZubeCard(context, result);
     }
   }
 };
