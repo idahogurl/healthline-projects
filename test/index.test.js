@@ -18,13 +18,14 @@ function spyOnObject(fileName, module) {
   });
 }
 
+require('dotenv').config();
 // Requiring our app implementation
 const myProbotApp = require('..');
 // Requiring our fixtures
 const projectCardCreated = require('./fixtures/github/project-card-created.json');
 const projectCardMoved = require('./fixtures/github/project-card-moved.json');
 const issuesLabeled = require('./fixtures/github/issues-labeled.json');
-const issuesOpened = require('./fixtures/github/issues-labeled.json');
+const issuesOpened = require('./fixtures/github/issues-opened.json');
 
 jest.setTimeout(20000); // 1 second
 

@@ -1,5 +1,5 @@
 const { addCardToProject, getZubeCardDetails } = require('./shared');
-const { logInfo } = require('./error-handler');
+const { logInfo } = require('./logger');
 
 module.exports = async function onIssueOpened(context) {
   const {
@@ -13,5 +13,5 @@ module.exports = async function onIssueOpened(context) {
     zubeCategory,
     priority,
   });
-  await logInfo(`Project card for issue #${number} is added`);
+  logInfo(context, `Project card for issue #${number} is added`);
 };

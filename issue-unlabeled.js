@@ -1,4 +1,4 @@
-const { logInfo } = require('./error-handler');
+const { logInfo } = require('./logger');
 const { GET_PROJECT_CARD_FROM_ISSUE, DELETE_PROJECT_CARD } = require('./graphql/project-card');
 const { getZubeCardDetails, addCardToProject, moveProjectCard } = require('./shared');
 const { LABELING_HANDLER_ACTIONS, getLabelingHandlerAction } = require('./label-actions-shared');
@@ -10,7 +10,7 @@ module.exports = async function onIssueUnlabeled(context) {
   } = context.payload;
 
   if (label.name.includes('[zube]: ')) {
-    await logInfo(`Label '${label.name}' removed from Issue #${number}`);
+    logInfo(context, `Label '${label.name}' removed from Issue #${number}`);
     const {
       node: {
         projectCards: { nodes: projectCards },
@@ -37,7 +37,10 @@ module.exports = async function onIssueUnlabeled(context) {
             cardId: projectCardNode.node_id,
           },
         });
-        await logInfo(`Zube card unassigned from board. Project card deleted for issue #${number}`);
+        logInfo(
+          context,
+          `Zube card unassigned from board. Project card deleted for issue #${number}`,
+        );
       }
 
       if (action === MOVE_CARD_COLUMN) {
@@ -46,7 +49,7 @@ module.exports = async function onIssueUnlabeled(context) {
           projectCardNode,
           newColumn: `[zube]: ${zubeCategory.name}`,
         });
-        await logInfo(`Project card for issue #${number} is moved to ${label.name}`);
+        logInfo(context, `Project card for issue #${number} is moved to ${label.name}`);
       }
 
       if (action === MOVE_CARD_PROJECT) {
@@ -56,13 +59,14 @@ module.exports = async function onIssueUnlabeled(context) {
           },
         });
         await addCardToProject({ context, zubeWorkspace, zubeCategory });
-        await logInfo(
+        logInfo(
+          context,
           `Project card for issue #${number} is moved to ${zubeWorkspace}: ${zubeCategory}`,
         );
       }
     } else {
       await addCardToProject({ context, zubeWorkspace, zubeCategory });
-      await logInfo(`Project card created for issue #${number}`);
+      logInfo(context, `Project card created for issue #${number}`);
     }
   }
 };

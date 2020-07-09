@@ -1,5 +1,11 @@
 const { getAccessJwt } = require('./zube');
 
-getAccessJwt().then((response) => {
+getAccessJwt({
+  log: {
+    info: (x) => {
+      console.log(x);
+    },
+  },
+}).then((response) => {
   console.log(response);
 });
