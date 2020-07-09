@@ -8,30 +8,27 @@ async function onError(context, e) {
   throw e;
 }
 
-async function logInfo(context, message) {
-  context.log.info(message);
-}
-
-async function logWarning(context, message) {
-  context.log.warn(message);
-}
-
 function addLoggingToRequest(context) {
   context.github.hook.wrap('request', async (request, options) => {
     const time = Date.now();
-    const response = await request(options);
-    const {
-      url, method, query, variables, body,
-    } = options;
-    context.log.info({
-      url,
-      method,
-      body: query || body,
-      variables,
-      querytime_ms: Date.now() - time,
-      statusCode: response.status,
-    });
-    return response;
+    try {
+      const response = await request(options);
+      const {
+        url, method, query, variables, body,
+      } = options;
+      context.log.info({
+        url,
+        method,
+        body: query || body,
+        variables,
+        querytime_ms: Date.now() - time,
+        statusCode: response.status,
+      });
+      return response;
+    } catch (e) {
+      context.log.error(e);
+      throw e;
+    }
   });
 }
 
@@ -77,8 +74,6 @@ function addLoggerStreams(logger) {
 
 module.exports = {
   onError,
-  logInfo,
-  logWarning,
   addLoggingToRequest,
   addLoggerStreams,
 };

@@ -27,7 +27,7 @@ const {
   getZubeCard, moveProjectCard, getZubeCardDetails, addCardToProject,
 } = require('./shared');
 const { deleteProjectCard } = require('./project-card');
-const { logInfo, addLoggingToRequest } = require('./logger');
+const { addLoggingToRequest } = require('./logger');
 const { GET_PROJECT_FROM_ISSUE } = require('./graphql/project');
 const { getLabelingHandlerAction, LABELING_HANDLER_ACTIONS } = require('./label-actions-shared');
 
@@ -47,10 +47,10 @@ async function addCard(context) {
     if (result) {
       // nop
     } else {
-      logInfo(context, `Could not match '${zubeCategory.toLowerCase()}' to GitHub project column`);
+      context.log.warn(`Could not match '${zubeCategory.toLowerCase()}' to GitHub project column`);
     }
   } else {
-    logInfo(context, `GitHub issue #${number} could not be found in Zube`);
+    context.log.warn(`GitHub issue #${number} could not be found in Zube`);
   }
 }
 
@@ -63,7 +63,7 @@ module.exports = async function onIssueLabeled(context) {
 
   // Zube label?
   if (addedLabel.name.includes('[zube]')) {
-    logInfo(context, `New label '${addedLabel.name}' added to Issue #${number}`);
+    context.log.info(`New label '${addedLabel.name}' added to Issue #${number}`);
     const { node } = await context.github.graphql(GET_PROJECT_FROM_ISSUE, {
       id: issueId,
       number,
@@ -85,28 +85,26 @@ module.exports = async function onIssueLabeled(context) {
 
       if (action === DELETE_CARD) {
         await deleteProjectCard(context, projectCardNode.node_id);
-        logInfo(
-          context,
+        context.log.info(
           `Zube card unassigned from board. Project card deleted for issue #${number}`,
         );
       }
 
       if (action === MOVE_CARD_COLUMN) {
         await moveProjectCard({ context, projectCardNode, newColumn: addedLabel.name });
-        logInfo(context, `Project card for issue #${number} is moved to ${addedLabel.name}`);
+        context.log.info(`Project card for issue #${number} is moved to ${addedLabel.name}`);
       }
 
       if (action === MOVE_CARD_PROJECT) {
         await deleteProjectCard(context, projectCardNode.node_id);
         await addCardToProject({ context, zubeWorkspace, zubeCategory });
-        logInfo(
-          context,
+        context.log.info(
           `Project card for issue #${number} is moved to ${zubeWorkspace}: ${zubeCategory}`,
         );
       }
     } else {
       await addCard(context);
-      logInfo(context, `Project card for issue #${number} is added`);
+      context.log.info(`Project card for issue #${number} is added`);
     }
   }
 
@@ -128,7 +126,7 @@ module.exports = async function onIssueLabeled(context) {
         });
       }
     } else {
-      logInfo(context, `GitHub issue #${number} could not be found in Zube`);
+      context.log.warn(`GitHub issue #${number} could not be found in Zube`);
     }
   }
 };

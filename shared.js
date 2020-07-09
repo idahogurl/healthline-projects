@@ -1,5 +1,4 @@
 const { zubeRequest, getAccessJwt } = require('./zube');
-const { logWarning } = require('./logger');
 const {
   GET_ISSUE_FROM_PROJECT_CARD,
   MOVE_PROJECT_CARD,
@@ -39,7 +38,7 @@ async function findLabel(context, search) {
   if (label) {
     return label;
   }
-  logWarning(context, `Could not find '${search}' in GitHub labels`);
+  context.log.warn(context, `Could not find '${search}' in GitHub labels`);
 }
 
 async function getZubeCard(context, accessJwt) {

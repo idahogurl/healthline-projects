@@ -16,7 +16,7 @@
   "scripts": {
     "dev": "nodemon",
     "start": "probot run ./index.js",
-    "lint": "eslint",
+    "lint": "eslint *.js",
     "test": "ENV=dev yarn lint && jest",
     "test:watch": "ENV=dev jest --watch --notify --notifyMode=change --coverage -t"
   },

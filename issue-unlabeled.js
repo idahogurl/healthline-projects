@@ -1,4 +1,4 @@
-const { logInfo, addLoggingToRequest } = require('./logger');
+const { addLoggingToRequest } = require('./logger');
 const { GET_PROJECT_CARD_FROM_ISSUE, DELETE_PROJECT_CARD } = require('./graphql/project-card');
 const { getZubeCardDetails, addCardToProject, moveProjectCard } = require('./shared');
 const { LABELING_HANDLER_ACTIONS, getLabelingHandlerAction } = require('./label-actions-shared');
@@ -11,7 +11,7 @@ module.exports = async function onIssueUnlabeled(context) {
   } = context.payload;
 
   if (label.name.includes('[zube]: ')) {
-    logInfo(context, `Label '${label.name}' removed from Issue #${number}`);
+    context.log.info(`Label '${label.name}' removed from Issue #${number}`);
     const {
       node: {
         projectCards: { nodes: projectCards },
@@ -38,8 +38,7 @@ module.exports = async function onIssueUnlabeled(context) {
             cardId: projectCardNode.node_id,
           },
         });
-        logInfo(
-          context,
+        context.log.info(
           `Zube card unassigned from board. Project card deleted for issue #${number}`,
         );
       }
@@ -50,7 +49,7 @@ module.exports = async function onIssueUnlabeled(context) {
           projectCardNode,
           newColumn: `[zube]: ${zubeCategory.name}`,
         });
-        logInfo(context, `Project card for issue #${number} is moved to ${label.name}`);
+        context.log.info(`Project card for issue #${number} is moved to ${label.name}`);
       }
 
       if (action === MOVE_CARD_PROJECT) {
@@ -60,14 +59,13 @@ module.exports = async function onIssueUnlabeled(context) {
           },
         });
         await addCardToProject({ context, zubeWorkspace, zubeCategory });
-        logInfo(
-          context,
+        context.log.info(
           `Project card for issue #${number} is moved to ${zubeWorkspace}: ${zubeCategory}`,
         );
       }
     } else {
       await addCardToProject({ context, zubeWorkspace, zubeCategory });
-      logInfo(context, `Project card created for issue #${number}`);
+      context.log.info(`Project card created for issue #${number}`);
     }
   }
 };
