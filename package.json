@@ -16,11 +16,14 @@
   "scripts": {
     "dev": "nodemon",
     "start": "probot run ./index.js",
-    "lint": "eslint",
+    "lint": "eslint *.js",
     "test": "ENV=dev yarn lint && jest",
     "test:watch": "ENV=dev jest --watch --notify --notifyMode=change --coverage -t"
   },
   "dependencies": {
+    "bunyan": "^1.8.14",
+    "bunyan-loggly": "^1.4.2",
+    "bunyan-rollbar-stream": "^1.0.3",
     "dotenv": "^8.2.0",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.15",

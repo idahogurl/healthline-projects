@@ -4,10 +4,12 @@ const request = require('request-promise-native');
 
 require('dotenv').config();
 
-async function zubeRequest({
+async function zubeRequest(context, {
   endpoint, accessJwt, body, method = 'GET',
 }) {
-  return request(`https://zube.io/api/${encodeURI(endpoint)}`, {
+  const url = `https://zube.io/api/${encodeURI(endpoint)}`;
+  const start = new Date();
+  const response = await request(url, {
     method,
     json: true,
     headers: {
@@ -17,9 +19,17 @@ async function zubeRequest({
     auth: { bearer: accessJwt },
     body,
   });
+  context.log.info({
+    url,
+    method,
+    body,
+    statusCode: response.statusCode,
+    querytime_ms: new Date().getTime() - start.getTime(),
+  });
+  return response;
 }
 
-async function getAccessJwt() {
+async function getAccessJwt(context) {
   const clientId = process.env.ZUBE_CLIENT_ID;
   const privateKey = process.env.ENV === 'prod'
     ? process.env.ZUBE_PRIVATE_KEY
@@ -36,7 +46,7 @@ async function getAccessJwt() {
     { algorithm: 'RS256' },
   );
 
-  const { access_token: accessJwt } = await zubeRequest({
+  const { access_token: accessJwt } = await zubeRequest(context, {
     endpoint: 'users/tokens',
     method: 'POST',
     accessJwt: refreshJwt,

@@ -1,4 +1,5 @@
-const { onError } = require('./error-handler');
+const { addLoggerStreams } = require('./logger');
+const { onError } = require('./logger');
 const onIssueOpened = require('./issue-opened');
 const onIssueLabeled = require('./issue-labeled');
 const onIssueUnlabeled = require('./issue-unlabeled');
@@ -12,53 +13,31 @@ require('dotenv').config();
  * @param {import('probot').Application} app
  */
 module.exports = (app) => {
-  app.log('Yay, the app was loaded!');
-  try {
-    app.on('issues.opened', async (context) => {
-      try {
-        return onIssueOpened(context);
-      } catch (e) {
-        onError(e, context);
-      }
-    });
-    // Zube uses GitHub labels to set the issue's project column
-    // (called "workspace categories" in Zube)
-    app.on('issues.labeled', async (context) => {
-      try {
-        await onIssueLabeled(context);
-      } catch (e) {
-        onError(e, context);
-      }
-    });
-
-    app.on('issues.unlabeled', async (context) => {
-      try {
-        await onIssueUnlabeled(context);
-      } catch (e) {
-        onError(e, context);
-      }
-    });
-
-    app.on('project_card.created', async (context) => {
-      try {
-        await onProjectCardCreated(context);
-      } catch (e) {
-        onError(e, context);
-      }
-    });
-
-    app.on('project_card.moved', async (context) => {
-      try {
-        await onProjectCardMoved(context);
-      } catch (e) {
-        onError(e, context);
-      }
-    });
-  } catch (e) {
-    onError(e);
+  if (process.env.ENV === 'prod') {
+    addLoggerStreams(app.log.target);
   }
-};
 
+  app.on('issues.opened', (context) => onIssueOpened(context).catch((e) => {
+    onError(context, e);
+  }));
+  // Zube uses GitHub labels to set the issue's project column
+  // (called "workspace categories" in Zube)
+  app.on('issues.labeled', (context) => onIssueLabeled(context).catch((e) => {
+    onError(context, e);
+  }));
+
+  app.on('issues.unlabeled', (context) => onIssueUnlabeled(context).catch((e) => {
+    onError(context, e);
+  }));
+
+  app.on('project_card.created', (context) => onProjectCardCreated(context).catch((e) => {
+    onError(context, e);
+  }));
+
+  app.on('project_card.moved', (context) => onProjectCardMoved(context).catch((e) => {
+    onError(context, e);
+  }));
+};
 // For more information on building apps:
 // https://probot.github.io/docs/
 
