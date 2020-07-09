@@ -21,6 +21,7 @@
     "test:watch": "ENV=dev jest --watch --notify --notifyMode=change --coverage -t"
   },
   "dependencies": {
+    "bunyan": "^1.8.14",
     "bunyan-loggly": "^1.4.2",
     "bunyan-rollbar-stream": "^1.0.3",
     "dotenv": "^8.2.0",

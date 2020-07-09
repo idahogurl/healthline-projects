@@ -13,10 +13,9 @@ require('dotenv').config();
  * @param {import('probot').Application} app
  */
 module.exports = (app) => {
-  if (process.env.ENV === 'dev') {
+  if (process.env.ENV === 'prod') {
     addLoggerStreams(app.log.target);
   }
-  app.log('Yay, the app was loaded!');
 
   app.on('issues.opened', (context) => onIssueOpened(context).catch((e) => {
     onError(context, e);

@@ -1146,7 +1146,7 @@ bunyan-sentry-stream@^1.1.0:
   dependencies:
     lodash.omit "4.5.0"
 
-bunyan@^1.8.12:
+bunyan@^1.8.12, bunyan@^1.8.14:
   version "1.8.14"
   resolved "https://registry.yarnpkg.com/bunyan/-/bunyan-1.8.14.tgz#3d8c1afea7de158a5238c7cb8a66ab6b38dd45b4"
   integrity sha512-LlahJUxXzZLuw/hetUQJmRgZ1LF6+cr5TPpRj6jf327AsiIq2jhYEH4oqUUkVKTor+9w2BT3oxVwhzE5lw9tcg==
