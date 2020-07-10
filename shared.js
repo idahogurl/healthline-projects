@@ -1,4 +1,5 @@
 const { zubeRequest, getAccessJwt } = require('./zube');
+const zubeWorkspaces = require('./zube-workspaces.json');
 const {
   GET_ISSUE_FROM_PROJECT_CARD,
   MOVE_PROJECT_CARD,
@@ -15,6 +16,10 @@ function getMatchingColumn({ columns, newColumn, currentColumn }) {
     // card already in new column
   }
   return columns && columns.find((c) => c.name.toLowerCase() === newColumnName);
+}
+
+function getZubeWorkspace({ id, name }) {
+  return zubeWorkspaces.find((w) => w.id === id || w.name === name.toLowerCase());
 }
 
 async function findLabel(context, search) {
@@ -46,8 +51,11 @@ async function getZubeCard(context, accessJwt) {
     issue: { title, number },
   } = context.payload;
   // find the Zube card
-  const search = title.split(' ').slice(0, 5).join(' ');
-  // get first 5 words to speed up request
+  // Each card has a 'search_key' field which (as far as I can tell) must be an indexed field.
+  // Searching using its value cuts the response time by half. Its value is the card's title
+  // in all lower case. Also, searching by the first 2 words as cuts the time in half.
+  const search = title.toLowerCase().split(' ').slice(0, 2).join(' ');
+
   const params = {
     endpoint: `projects/${process.env.ZUBE_PROJECT_ID}/cards?search=${search}`,
     accessJwt,
@@ -63,17 +71,12 @@ async function getZubeCard(context, accessJwt) {
 async function getZubeCardDetails(context) {
   const accessJwt = await getAccessJwt(context);
   const zubeCard = await getZubeCard(context, accessJwt);
-  const { workspace_id: workspaceId, category_name: zubeCategory, priority } = zubeCard;
+  if (zubeCard) {
+    const { workspace_id: workspaceId, category_name: zubeCategory, priority } = zubeCard;
 
-  if (workspaceId === null) {
-    return {};
+    const zubeWorkspace = getZubeWorkspace({ id: workspaceId });
+    return { zubeWorkspace, zubeCategory, priority };
   }
-  const zubeWorkspace = await zubeRequest(context, {
-    endpoint: `workspaces/${workspaceId}`,
-    accessJwt,
-  });
-
-  return { zubeWorkspace, zubeCategory, priority };
 }
 async function moveZubeCard(context, result) {
   const { column, issue } = result;
@@ -86,11 +89,7 @@ async function moveZubeCard(context, result) {
     project: { name: projectName },
   } = column;
   // find workspace matching card column
-  const { data } = await zubeRequest(context, {
-    endpoint: `workspaces?where[name]=${projectName}`,
-    accessJwt,
-  });
-  const [workspace] = data;
+  const workspace = getZubeWorkspace({ name: projectName });
   if (workspace) {
     await zubeRequest(context, {
       endpoint: `cards/${zubeCard.id}/move`,

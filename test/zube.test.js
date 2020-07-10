@@ -3,7 +3,7 @@ const { getAccessJwt, zubeRequest } = require('../zube');
 const zubeCard = require('./fixtures/zube/card.json');
 
 test('zube request', async () => {
-  const endpoint = 'projects/16987/cards?search=MNT program pages show "Healthline"';
+  const endpoint = 'projects/16987/cards?search=mnt program';
   const res = await zubeRequest(
     {
       log: {
