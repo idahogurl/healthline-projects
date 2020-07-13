@@ -19,7 +19,10 @@ function getMatchingColumn({ columns, newColumn, currentColumn }) {
 }
 
 function getZubeWorkspace({ id, name }) {
-  return zubeWorkspaces.find((w) => w.id === id || w.name === name.toLowerCase());
+  if (id) {
+    return zubeWorkspaces.find((w) => w.id === id);
+  }
+  return zubeWorkspaces.find((w) => w.name === name.toLowerCase());
 }
 
 async function findLabel(context, search) {
