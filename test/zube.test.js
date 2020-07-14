@@ -3,7 +3,7 @@ const { getAccessJwt, zubeRequest } = require('../zube');
 const zubeCard = require('./fixtures/zube/card.json');
 
 test('zube request', async () => {
-  const endpoint = 'projects/16987/cards?search=mnt program';
+  const endpoint = 'projects/16987/cards';
   const res = await zubeRequest(
     {
       log: {
@@ -14,6 +14,7 @@ test('zube request', async () => {
     },
     {
       endpoint,
+      qs: { search: 'mnt program' },
     },
   );
   expect(res).toMatchObject(zubeCard);

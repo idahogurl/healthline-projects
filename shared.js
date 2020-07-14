@@ -60,7 +60,8 @@ async function getZubeCard(context, accessJwt) {
   const search = title.toLowerCase().split(' ').slice(0, 2).join(' ');
 
   const params = {
-    endpoint: `projects/${process.env.ZUBE_PROJECT_ID}/cards?search=${search}`,
+    endpoint: `projects/${process.env.ZUBE_PROJECT_ID}/cards`,
+    qs: { search },
     accessJwt,
   };
   const { data } = await zubeRequest(context, params);

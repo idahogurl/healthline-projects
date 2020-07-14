@@ -5,11 +5,12 @@ const request = require('request-promise-native');
 require('dotenv').config();
 
 async function zubeRequest(context, {
-  endpoint, accessJwt, body, method = 'GET',
+  endpoint, qs, accessJwt, body, method = 'GET',
 }) {
-  const url = `https://zube.io/api/${encodeURI(endpoint)}`;
+  const url = `https://zube.io/api/${endpoint}`;
   const start = new Date();
   const response = await request(url, {
+    qs,
     method,
     json: true,
     headers: {
@@ -21,6 +22,7 @@ async function zubeRequest(context, {
   });
   context.log.info({
     url,
+    qs,
     method,
     body,
     statusCode: response.statusCode,
