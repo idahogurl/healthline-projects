@@ -1,4 +1,4 @@
-const { getColumnsByProjectName } = require('./shared');
+const { getColumnsByProjectName } = require('./data-access/project');
 
 const LABELING_HANDLER_ACTIONS = {
   DELETE_CARD: 'delete-card',

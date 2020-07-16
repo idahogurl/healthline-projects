@@ -3,11 +3,11 @@ const nock = require('nock');
 const { Probot } = require('probot');
 const fs = require('fs');
 const path = require('path');
-const shared = require('../shared');
-const projectCard = require('../project-card');
+const zube = require('../data-access/zube');
+const projectCard = require('../data-access/project-card');
 
-jest.mock('../shared');
-jest.mock('../project-card');
+jest.mock('../data-access/zube');
+jest.mock('../data-access/project-card');
 
 function spyOnObject(fileName, module) {
   const actual = jest.requireActual(fileName);
@@ -34,8 +34,8 @@ describe('My Probot app', () => {
   let mockCert;
 
   beforeAll((done) => {
-    spyOnObject('../shared', shared);
-    spyOnObject('../project-card', projectCard);
+    spyOnObject('../data-access/zube', zube);
+    spyOnObject('../data-access/project-card', projectCard);
     fs.readFile(path.join(__dirname, 'fixtures/mock-cert.pem'), (err, cert) => {
       if (err) return done(err);
       mockCert = cert;
@@ -53,12 +53,13 @@ describe('My Probot app', () => {
   test('issue.opened', async () => {
     issuesOpened.issue.node_id = 2;
     await probot.receive({ name: 'issues', payload: issuesOpened });
+    expect(projectCard.addProjectCard).toHaveBeenCalled();
   });
 
   test('issues.labeled with project cards', async () => {
     issuesLabeled.issue.node_id = 1;
     await probot.receive({ name: 'issues', payload: issuesLabeled });
-    expect(shared.getZubeCardDetails).toHaveBeenCalled();
+    expect(zube.getZubeCardDetails).toHaveBeenCalled();
   });
 
   test('issues.labeled diff project', async () => {

@@ -18,7 +18,7 @@ issueFromCardDiffLabel.data.node.column.name = 'Next';
 
 const fixtures = {
   'query getProjectColumns': projectColumns,
-  'query getIssueFromProjectCard': {
+  'query getProjectCardDetails': {
     1: issue,
     2: issueNoZube,
     3: issueLabelNotFound,

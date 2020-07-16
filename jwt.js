@@ -1,4 +1,4 @@
-const { getAccessJwt } = require('./zube');
+const { getAccessJwt } = require('./data-access/zube');
 
 getAccessJwt({
   log: {

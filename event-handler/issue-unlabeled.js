@@ -1,7 +1,12 @@
-const { addLoggingToRequest } = require('./logger');
-const { GET_PROJECT_CARD_FROM_ISSUE, DELETE_PROJECT_CARD } = require('./graphql/project-card');
-const { getZubeCardDetails, addCardToProject, moveProjectCard } = require('./shared');
+const { addLoggingToRequest } = require('../logger');
+const {
+  addProjectCard,
+  deleteProjectCard,
+  moveProjectCard,
+  getProjectCardFromIssue,
+} = require('../data-access/project-card');
 const { LABELING_HANDLER_ACTIONS, getLabelingHandlerAction } = require('./label-actions-shared');
+const { getZubeCardDetails } = require('../data-access/zube');
 
 module.exports = async function onIssueUnlabeled(context) {
   addLoggingToRequest(context);
@@ -16,9 +21,8 @@ module.exports = async function onIssueUnlabeled(context) {
       node: {
         projectCards: { nodes: projectCards },
       },
-    } = await context.github.graphql(GET_PROJECT_CARD_FROM_ISSUE, {
-      id,
-    });
+    } = getProjectCardFromIssue(context, id);
+
     const { zubeWorkspace, zubeCategory } = await getZubeCardDetails(context);
     const [projectCardNode] = projectCards;
     if (projectCardNode) {
@@ -33,11 +37,7 @@ module.exports = async function onIssueUnlabeled(context) {
       });
 
       if (action === DELETE_CARD) {
-        await context.github.graphql(DELETE_PROJECT_CARD, {
-          input: {
-            cardId: projectCardNode.node_id,
-          },
-        });
+        await deleteProjectCard(context, projectCardNode.node_id);
         context.log.info(
           `Zube card unassigned from board. Project card deleted for issue #${number}`,
         );
@@ -53,18 +53,14 @@ module.exports = async function onIssueUnlabeled(context) {
       }
 
       if (action === MOVE_CARD_PROJECT) {
-        await context.github.graphql(DELETE_PROJECT_CARD, {
-          input: {
-            cardId: projectCardNode.node_id,
-          },
-        });
-        await addCardToProject({ context, zubeWorkspace, zubeCategory });
+        await deleteProjectCard(context, projectCardNode.node_id);
+        await addProjectCard({ context, zubeWorkspace, zubeCategory });
         context.log.info(
           `Project card for issue #${number} is moved to ${zubeWorkspace}: ${zubeCategory}`,
         );
       }
     } else {
-      await addCardToProject({ context, zubeWorkspace, zubeCategory });
+      await addProjectCard({ context, zubeWorkspace, zubeCategory });
       context.log.info(`Project card created for issue #${number}`);
     }
   }

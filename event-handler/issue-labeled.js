@@ -22,14 +22,15 @@ USE CASE
 When a user moves card in Zube:
 1. Adds Zube label to GitHub issue (fires issue.labeled event)
 */
-const { getAccessJwt, zubeRequest } = require('./zube');
 const {
-  getZubeCard, moveProjectCard, getZubeCardDetails, addCardToProject,
-} = require('./shared');
-const { deleteProjectCard } = require('./project-card');
-const { addLoggingToRequest } = require('./logger');
-const { GET_PROJECT_FROM_ISSUE } = require('./graphql/project');
-const { getLabelingHandlerAction, LABELING_HANDLER_ACTIONS } = require('./label-actions-shared');
+  deleteProjectCard,
+  moveProjectCard,
+  addProjectCard,
+} = require('../data-access/project-card');
+const { addLoggingToRequest } = require('../logger');
+const { getProjectFromIssue } = require('../data-access/project');
+const { getLabelingHandlerAction, LABELING_HANDLER_ACTIONS } = require('../label-actions-shared');
+const { getZubeCardDetails, updatePriority, getAccessJwt } = require('../data-access/zube');
 
 async function addCard(context) {
   const {
@@ -38,7 +39,7 @@ async function addCard(context) {
 
   const { zubeWorkspace, zubeCategory, priority } = await getZubeCardDetails(context);
   if (zubeWorkspace) {
-    const result = await addCardToProject({
+    const result = await addProjectCard({
       context,
       zubeWorkspace,
       zubeCategory,
@@ -69,10 +70,7 @@ module.exports = async function onIssueLabeled(context) {
   // Zube label?
   if (addedLabel.name.includes('[zube]')) {
     context.log.info(`New label '${addedLabel.name}' added to Issue #${number}`);
-    const { node } = await context.github.graphql(GET_PROJECT_FROM_ISSUE, {
-      id: issueId,
-      number,
-    });
+    const { node } = await getProjectFromIssue({ context, issueId, number });
     const { nodes: projectCards } = node.projectCards;
     const [projectCardNode] = projectCards;
     if (projectCardNode) {
@@ -102,7 +100,7 @@ module.exports = async function onIssueLabeled(context) {
 
       if (action === MOVE_CARD_PROJECT) {
         await deleteProjectCard(context, projectCardNode.node_id);
-        await addCardToProject({ context, zubeWorkspace, zubeCategory });
+        await addProjectCard({ context, zubeWorkspace, zubeCategory });
         context.log.info(
           `Project card for issue #${number} is moved to ${zubeWorkspace}: ${zubeCategory}`,
         );
@@ -115,23 +113,10 @@ module.exports = async function onIssueLabeled(context) {
 
   // priority label?
   if (/^P\d$/.test(addedLabel.name)) {
-    const accessJwt = await getAccessJwt(context);
-    const zubeCard = await getZubeCard(context, accessJwt);
     const priority = parseInt(addedLabel.name.replace('P', ''), 10);
-    if (zubeCard) {
-      if (zubeCard.priority !== priority) {
-        await zubeRequest(context, {
-          endpoint: `cards/${zubeCard.id}`,
-          accessJwt,
-          body: {
-            ...zubeCard,
-            priority,
-          },
-          method: 'PUT',
-        });
-      }
-    } else {
-      context.log.warn(`GitHub issue #${number} could not be found in Zube`);
-    }
+    const accessJwt = await getAccessJwt(context);
+    await updatePriority({ context, priority, accessJwt });
+  } else {
+    context.log.warn(`GitHub issue #${number} could not be found in Zube`);
   }
 };

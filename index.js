@@ -1,10 +1,9 @@
-const { addLoggerStreams } = require('./logger');
-const { onError } = require('./logger');
-const onIssueOpened = require('./issue-opened');
-const onIssueLabeled = require('./issue-labeled');
-const onIssueUnlabeled = require('./issue-unlabeled');
-const onProjectCardCreated = require('./card-created');
-const onProjectCardMoved = require('./card-moved');
+const { addLoggerStreams, onError } = require('./logger');
+const onIssueOpened = require('./event-handler/issue-opened');
+const onIssueLabeled = require('./event-handler/issue-labeled');
+const onIssueUnlabeled = require('./event-handler/issue-unlabeled');
+const onProjectCardCreated = require('./event-handler/card-created');
+const onProjectCardMoved = require('./event-handler/card-moved');
 
 require('dotenv').config();
 

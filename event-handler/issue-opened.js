@@ -1,5 +1,6 @@
-const { addCardToProject, getZubeCardDetails } = require('./shared');
-const { addLoggingToRequest } = require('./logger');
+const { addLoggingToRequest } = require('../logger');
+const { addProjectCard } = require('../data-access/project-card');
+const { getZubeCardDetails } = require('../data-access/zube');
 
 module.exports = async function onIssueOpened(context) {
   // unlabeled is called before labeled
@@ -13,7 +14,7 @@ module.exports = async function onIssueOpened(context) {
     // issue opened by Zube
     const { zubeWorkspace, zubeCategory, priority } = details;
 
-    await addCardToProject({
+    await addProjectCard({
       context,
       zubeWorkspace,
       zubeCategory,

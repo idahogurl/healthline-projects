@@ -37,6 +37,7 @@
     "eslint": "^7.2.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-plugin-import": "^2.21.2",
+    "husky": "^4.2.5",
     "jest": "^24.9.0",
     "nock": "^12.0.0",
     "nodemon": "^2.0.4",
@@ -61,5 +62,10 @@
   },
   "jest": {
     "testEnvironment": "node"
+  },
+  "husky": {
+    "hooks": {
+      "pre-push": "./bin/pre-push.sh"
+    }
   }
 }

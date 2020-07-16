@@ -13,13 +13,10 @@ HANDLER LOGIC
     c. Move card to matching category in Zube
 */
 
-const {
-  getIssueFromCard,
-  moveZubeCard,
-  getColumnsByProjectName,
-  moveProjectCard,
-} = require('./shared');
-const { addLoggingToRequest } = require('./logger');
+const { getColumnsByProjectName } = require('../data-access/project');
+const { moveProjectCard, getProjectCardDetails } = require('../data-access/project-card');
+const { moveZubeCard } = require('../data-access/zube');
+const { addLoggingToRequest } = require('../logger');
 
 module.exports = async function onCardCreated(context) {
   addLoggingToRequest(context);
@@ -28,10 +25,11 @@ module.exports = async function onCardCreated(context) {
     repository: { node_id: repoId },
   } = context.payload;
 
-  const result = await getIssueFromCard(context, projectCardNode.node_id);
+  const projectCardDetails = await getProjectCardDetails(context, projectCardNode.node_id);
 
-  if (result) {
-    const { issue, column } = result;
+  if (projectCardDetails) {
+    // get the column & issue from event's project card
+    const { column, content: issue } = projectCardDetails;
     projectCardNode.column = column;
 
     const {
@@ -57,6 +55,6 @@ module.exports = async function onCardCreated(context) {
       }
     }
     // move from triage
-    return moveZubeCard(context, result);
+    return moveZubeCard(context, projectCardDetails);
   }
 };
