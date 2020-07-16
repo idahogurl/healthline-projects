@@ -55,6 +55,11 @@ async function addCard(context) {
 }
 
 module.exports = async function onIssueLabeled(context) {
+  // unlabeled is called before labeled
+  // IF locked
+  // unlock issue
+  // return
+  // ELSE
   addLoggingToRequest(context);
   const {
     label: addedLabel,

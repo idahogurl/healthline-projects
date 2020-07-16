@@ -22,7 +22,9 @@ function getZubeWorkspace({ id, name }) {
   if (id) {
     return zubeWorkspaces.find((w) => w.id === id);
   }
-  return zubeWorkspaces.find((w) => w.name === name.toLowerCase());
+  if (name) {
+    return zubeWorkspaces.find((w) => w.name === name.toLowerCase());
+  }
 }
 
 async function findLabel(context, search) {
@@ -72,9 +74,14 @@ async function getZubeCard(context, accessJwt) {
   return zubeCard;
 }
 
-async function getZubeCardDetails(context) {
-  const accessJwt = await getAccessJwt(context);
-  const zubeCard = await getZubeCard(context, accessJwt);
+async function getZubeCardDetails(context, accessJwt) {
+  let jwt;
+  if (accessJwt) {
+    jwt = accessJwt;
+  } else {
+    jwt = await getAccessJwt(context);
+  }
+  const zubeCard = await getZubeCard(context, jwt);
   if (zubeCard) {
     const {
       id, workspace_id: workspaceId, category_name: zubeCategory, priority,
@@ -92,7 +99,6 @@ async function getZubeCardDetails(context) {
 async function moveZubeCard(context, result) {
   const { column, issue } = result;
   const accessJwt = await getAccessJwt(context);
-  // card created in GitHub, move Zube ticket from triage to matching board & category
   context.payload.issue = issue;
   const { id, zubeCategory } = await getZubeCardDetails(context, accessJwt);
   const {

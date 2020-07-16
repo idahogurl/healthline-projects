@@ -10,7 +10,7 @@ module.exports = async function onIssueOpened(context) {
   } = context;
   const details = await getZubeCardDetails(context);
   if (details) {
-    // issue opened in Zube
+    // issue opened by Zube
     const { zubeWorkspace, zubeCategory, priority } = details;
 
     await addCardToProject({
@@ -18,9 +18,8 @@ module.exports = async function onIssueOpened(context) {
       zubeWorkspace,
       zubeCategory,
       priority,
-      addZubeLabel: false,
     });
     context.log.info(`Project card for issue #${number} is added`);
   }
-  // issue opened in GitHub
+  // the destination GitHub project cannot be determined without a Zube card
 };
