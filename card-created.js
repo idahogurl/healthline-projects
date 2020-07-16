@@ -48,14 +48,15 @@ module.exports = async function onCardCreated(context) {
           projectName: column.project.name,
         });
         // issue already has a Zube label, move to matching projects column
-        await moveProjectCard({
+        return moveProjectCard({
           context,
           projectCardNode,
           newColumn: zubeLabel.name,
           projectColumns: columns,
         });
       }
-      await moveZubeCard(context, result);
     }
+    // move from triage
+    return moveZubeCard(context, result);
   }
 };

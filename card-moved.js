@@ -1,5 +1,6 @@
 const { addLabel, getIssueFromCard, moveZubeCard } = require('./shared');
 const { addLoggingToRequest } = require('./logger');
+const { client, lock } = require('./redis');
 
 module.exports = async function onCardMoved(context) {
   addLoggingToRequest(context);
@@ -11,6 +12,8 @@ module.exports = async function onCardMoved(context) {
     } = result;
     // move to different board in Zube
     const label = `[zube]: ${name}`;
+    // const redis = client();
+    // await lock(redis, issue.number);
     await addLabel({
       context,
       issue,

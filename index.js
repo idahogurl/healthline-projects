@@ -17,9 +17,11 @@ module.exports = (app) => {
     addLoggerStreams(app.log.target);
   }
 
+  // sometimes Zube doesn't add a label when 'Add to Source' is called
   app.on('issues.opened', (context) => onIssueOpened(context).catch((e) => {
     onError(context, e);
   }));
+
   // Zube uses GitHub labels to set the issue's project column
   // (called "workspace categories" in Zube)
   app.on('issues.labeled', (context) => onIssueLabeled(context).catch((e) => {
