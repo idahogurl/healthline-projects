@@ -11,7 +11,7 @@ query getProjectCardDetails($id: ID!) {
           name
         }
       }
-      content {
+      content: issue {
         ... on Issue {
           id
           title

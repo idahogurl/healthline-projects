@@ -32,7 +32,8 @@ const fixtures = {
   },
   'query getProjectCardFromIssue': {
     1: issue,
-    2: issue,
+    2: issueNoCards,
+    3: issueDiffProject,
   },
   'query getIssueLabels': {
     1: issueLabels,

@@ -9,7 +9,7 @@ async function getColumnsByProjectName({ context, repoId, projectName }) {
   if (projectNode) {
     return projectNode.columns.nodes;
   }
-  return {};
+  return [];
 }
 
 async function getProjectFromIssue({ context, issueId, number }) {

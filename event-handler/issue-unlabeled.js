@@ -5,7 +5,7 @@ const {
   moveProjectCard,
   getProjectCardFromIssue,
 } = require('../data-access/project-card');
-const { LABELING_HANDLER_ACTIONS, getLabelingHandlerAction } = require('./label-actions-shared');
+const { LABELING_HANDLER_ACTIONS, getLabelingHandlerAction } = require('../label-actions-shared');
 const { getZubeCardDetails } = require('../data-access/zube');
 
 module.exports = async function onIssueUnlabeled(context) {
@@ -21,7 +21,7 @@ module.exports = async function onIssueUnlabeled(context) {
       node: {
         projectCards: { nodes: projectCards },
       },
-    } = getProjectCardFromIssue(context, id);
+    } = await getProjectCardFromIssue(context, id);
 
     const { zubeWorkspace, zubeCategory } = await getZubeCardDetails(context);
     const [projectCardNode] = projectCards;
@@ -56,7 +56,7 @@ module.exports = async function onIssueUnlabeled(context) {
         await deleteProjectCard(context, projectCardNode.node_id);
         await addProjectCard({ context, zubeWorkspace, zubeCategory });
         context.log.info(
-          `Project card for issue #${number} is moved to ${zubeWorkspace}: ${zubeCategory}`,
+          `Project card for issue #${number} is moved to ${zubeWorkspace.name}: ${zubeCategory}`,
         );
       }
     } else {

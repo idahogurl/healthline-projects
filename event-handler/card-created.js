@@ -8,9 +8,7 @@ HANDLER LOGIC
 
     ELSE
 
-    a. Query zube for card
-    b. Query for categories in Zube
-    c. Move card to matching category in Zube
+    b. Move card to matching workspace & category in Zube
 */
 
 const { getColumnsByProjectName } = require('../data-access/project');
@@ -29,7 +27,7 @@ module.exports = async function onCardCreated(context) {
 
   if (projectCardDetails) {
     // get the column & issue from event's project card
-    const { column, content: issue } = projectCardDetails;
+    const { column, issue } = projectCardDetails;
     projectCardNode.column = column;
 
     const {
@@ -54,7 +52,7 @@ module.exports = async function onCardCreated(context) {
         });
       }
     }
-    // move from triage
+    // move from triage or other Zube workspace
     return moveZubeCard(context, projectCardDetails);
   }
 };

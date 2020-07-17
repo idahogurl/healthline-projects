@@ -124,9 +124,10 @@ async function moveZubeCard(context, projectCardDetails) {
     project: { name: projectName },
   } = column;
 
+  // get Zube workspace whose name matches the the GitHub project card's project name
   const workspace = getZubeWorkspace({ name: projectName });
-  // move if a different category than the current
-  if (zubeCategory.toLowerCase() !== columnName.toLowerCase()) {
+  // move if a different category than the current and a matching Zube workspace was found
+  if (workspace && zubeCategory.toLowerCase() !== columnName.toLowerCase()) {
     await zubeRequest(context, {
       endpoint: `cards/${id}/move`,
       accessJwt,
@@ -140,11 +141,12 @@ async function moveZubeCard(context, projectCardDetails) {
       },
       method: 'PUT',
     });
+    return true;
   }
 }
 
 async function updatePriority({ context, priority, accessJwt }) {
-  const zubeCard = getZubeCard(context, accessJwt);
+  const zubeCard = await getZubeCard(context, accessJwt);
   if (zubeCard && zubeCard.priority !== priority) {
     await zubeRequest(context, {
       endpoint: `cards/${zubeCard.id}`,
@@ -155,6 +157,7 @@ async function updatePriority({ context, priority, accessJwt }) {
       },
       method: 'PUT',
     });
+    return true;
   }
 }
 

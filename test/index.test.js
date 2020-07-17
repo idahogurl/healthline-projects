@@ -1,5 +1,4 @@
 /* eslint-env jest, node */
-const nock = require('nock');
 const { Probot } = require('probot');
 const fs = require('fs');
 const path = require('path');
@@ -9,15 +8,6 @@ const projectCard = require('../data-access/project-card');
 jest.mock('../data-access/zube');
 jest.mock('../data-access/project-card');
 
-function spyOnObject(fileName, module) {
-  const actual = jest.requireActual(fileName);
-
-  const functions = Object.keys(module);
-  functions.forEach((f) => {
-    module[f].mockImplementation(async (...args) => actual[f].apply(null, args));
-  });
-}
-
 require('dotenv').config();
 // Requiring our app implementation
 const myProbotApp = require('..');
@@ -26,6 +16,7 @@ const projectCardCreated = require('./fixtures/github/project-card-created.json'
 const projectCardMoved = require('./fixtures/github/project-card-moved.json');
 const issuesLabeled = require('./fixtures/github/issues-labeled.json');
 const issuesOpened = require('./fixtures/github/issues-opened.json');
+const { spyOnObject } = require('./utils');
 
 jest.setTimeout(20000); // 1 second
 
@@ -44,71 +35,133 @@ describe('My Probot app', () => {
   });
 
   beforeEach(() => {
-    nock.disableNetConnect();
     probot = new Probot({ id: 123, cert: mockCert });
     // Load our app into probot
     probot.load(myProbotApp);
   });
 
-  test('issue.opened', async () => {
-    issuesOpened.issue.node_id = 2;
-    await probot.receive({ name: 'issues', payload: issuesOpened });
+  test('issue.opened with Zube card', async () => {
+    const openedIssue = { ...issuesOpened, issue: { ...issuesOpened.issue } };
+    openedIssue.issue.node_id = 2;
+    await probot.receive({ name: 'issues', payload: openedIssue });
     expect(projectCard.addProjectCard).toHaveBeenCalled();
   });
 
-  test('issues.labeled with project cards', async () => {
-    issuesLabeled.issue.node_id = 1;
-    await probot.receive({ name: 'issues', payload: issuesLabeled });
-    expect(zube.getZubeCardDetails).toHaveBeenCalled();
+  test('issue.opened without Zube card', async () => {
+    const openedIssue = { ...issuesOpened, issue: { ...issuesOpened.issue } };
+    openedIssue.issue.title = 'Not found';
+    await probot.receive({ name: 'issues', payload: openedIssue });
+    expect(projectCard.addProjectCard).toHaveBeenCalledTimes(0);
   });
 
-  test('issues.labeled diff project', async () => {
-    issuesLabeled.issue.node_id = 3;
-    await probot.receive({ name: 'issues', payload: issuesLabeled });
-    expect(projectCard.deleteProjectCard).toHaveBeenCalled();
+  describe('issues.labeled', () => {
+    test('with project cards', async () => {
+      const labeledIssue = { ...issuesLabeled, issue: { ...issuesLabeled.issue } };
+      labeledIssue.issue.node_id = 1;
+      await probot.receive({ name: 'issues', payload: labeledIssue });
+      expect(projectCard.moveProjectCard).toHaveBeenCalled();
+    });
+
+    test('with no project cards', async () => {
+      const labeledIssue = { ...issuesLabeled, issue: { ...issuesLabeled.issue } };
+      labeledIssue.issue.node_id = 2;
+      await probot.receive({ name: 'issues', payload: labeledIssue });
+      expect(projectCard.addProjectCard).toHaveBeenCalled();
+    });
+
+    test('with different project', async () => {
+      const labeledIssue = { ...issuesLabeled, issue: { ...issuesLabeled.issue } };
+      labeledIssue.issue.node_id = 3;
+      await probot.receive({ name: 'issues', payload: labeledIssue });
+      expect(projectCard.deleteProjectCard).toHaveBeenCalled();
+      expect(projectCard.addProjectCard).toHaveBeenCalled();
+    });
+
+    test('labeled with priority label', async () => {
+      const labeledIssuePriority = { ...issuesLabeled, label: { name: 'P5' } };
+      await probot.receive({ name: 'issues', payload: labeledIssuePriority });
+      expect(zube.updatePriority).toHaveBeenCalled();
+    });
   });
 
-  test('issues.unlabeled', async () => {});
+  describe('issues.unlabeled', () => {
+    test('with project cards', async () => {
+      const unlabeledIssue = { ...issuesLabeled, issue: { ...issuesLabeled.issue } };
+      unlabeledIssue.action = 'unlabeled';
+      unlabeledIssue.issue.node_id = 1;
+      await probot.receive({ name: 'issues', payload: unlabeledIssue });
+      expect(projectCard.moveProjectCard).toHaveBeenCalled();
+    });
 
-  test('issues.labeled no project cards', async () => {
-    issuesLabeled.issue.node_id = 2;
-    await probot.receive({ name: 'issues', payload: issuesLabeled });
+    test('with no project cards', async () => {
+      const unlabeledIssue = { ...issuesLabeled, issue: { ...issuesLabeled.issue } };
+      unlabeledIssue.action = 'unlabeled';
+      unlabeledIssue.issue.node_id = 2;
+      await probot.receive({ name: 'issues', payload: unlabeledIssue });
+      expect(projectCard.addProjectCard).toHaveBeenCalled();
+    });
+
+    test('with different project', async () => {
+      const unlabeledIssue = { ...issuesLabeled, issue: { ...issuesLabeled.issue } };
+      unlabeledIssue.action = 'unlabeled';
+      unlabeledIssue.issue.node_id = 3;
+      await probot.receive({ name: 'issues', payload: unlabeledIssue });
+      expect(projectCard.deleteProjectCard).toHaveBeenCalled();
+      expect(projectCard.addProjectCard).toHaveBeenCalled();
+    });
   });
 
-  test('project_card.created no Zube label', async () => {
-    projectCardCreated.project_card.node_id = 1;
-    await probot.receive({ name: 'project_card', payload: projectCardCreated });
+  describe('project_card.created', () => {
+    test('with no Zube label', async () => {
+      const createdProjectCard = { ...projectCardCreated, issue: { ...projectCardCreated.issue } };
+      createdProjectCard.project_card.node_id = 2;
+      await probot.receive({ name: 'project_card', payload: createdProjectCard });
+      expect(zube.moveZubeCard).toHaveBeenCalled();
+    });
+
+    test('has same Zube label', async () => {
+      const createdProjectCard = { ...projectCardCreated, issue: { ...projectCardCreated.issue } };
+      createdProjectCard.project_card.node_id = 2;
+      await probot.receive({ name: 'project_card', payload: createdProjectCard });
+      expect(projectCard.moveProjectCard).toHaveBeenCalledTimes(0);
+    });
+
+    test('has different Zube label', async () => {
+      const createdProjectCard = { ...projectCardCreated, issue: { ...projectCardCreated.issue } };
+      createdProjectCard.project_card.node_id = 3;
+      // Zube label different than column
+      await probot.receive({ name: 'project_card', payload: createdProjectCard });
+      expect(projectCard.moveProjectCard).toHaveBeenCalledTimes(0);
+    });
   });
 
-  test('project_card.created has same Zube label', async () => {
-    projectCardCreated.project_card.node_id = 2;
-    await probot.receive({ name: 'project_card', payload: projectCardCreated });
-  });
+  describe('project_card.moved', () => {
+    test('with label not found', async () => {
+      const movedProjectCard = {
+        ...projectCardMoved,
+        project_card: { ...projectCardMoved.project_card },
+      };
+      movedProjectCard.project_card.node_id = 3;
+      await probot.receive({ name: 'project_card', payload: movedProjectCard });
+    });
 
-  test('project_card.created has different Zube label', async () => {
-    projectCardCreated.project_card.node_id = 3;
-    // Zube label different than column
-    await probot.receive({ name: 'project_card', payload: projectCardCreated });
-  });
+    test('with same label', async () => {
+      const movedProjectCard = {
+        ...projectCardMoved,
+        project_card: { ...projectCardMoved.project_card },
+      };
+      movedProjectCard.project_card.node_id = 4;
+      await probot.receive({ name: 'project_card', payload: movedProjectCard });
+    });
 
-  test('project_card.moved label not found', async () => {
-    projectCardMoved.project_card.node_id = 3;
-    await probot.receive({ name: 'project_card', payload: projectCardMoved });
-  });
-
-  test('project_card.moved same label', async () => {
-    projectCardMoved.project_card.node_id = 4;
-    await probot.receive({ name: 'project_card', payload: projectCardMoved });
-  });
-
-  test('project_card.moved different label', async () => {
-    projectCardMoved.project_card.node_id = 5;
-    await probot.receive({ name: 'project_card', payload: projectCardMoved });
+    test('with different label', async () => {
+      const movedProjectCard = { ...projectCardMoved };
+      movedProjectCard.project_card.node_id = 5;
+      await probot.receive({ name: 'project_card', payload: movedProjectCard });
+    });
   });
 
   afterEach(() => {
-    nock.cleanAll();
-    nock.enableNetConnect();
     jest.clearAllMocks();
   });
 });

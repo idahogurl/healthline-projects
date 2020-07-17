@@ -20,11 +20,11 @@ async function addProjectCard({
   context, zubeWorkspace, zubeCategory, priority,
 }) {
   const {
-    issue: { node_id: issueId },
+    issue: { node_id: issueId, number },
     repository: { node_id: repoId },
   } = context.payload;
 
-  // no workspace = card is in triage or a workspace without a matching GitHub project
+  // Zube card without a workspace means card is in triage or a workspace without a matching GitHub project
   if (zubeWorkspace) {
     const columns = await getColumnsByProjectName({
       context,
@@ -44,6 +44,8 @@ async function addProjectCard({
           contentId: issueId,
         },
       });
+      context.log.info(`Project card for issue #${number} is added`);
+
       const issue = await getIssueLabels(context, issueId);
       await addLabel({
         context,
@@ -51,7 +53,7 @@ async function addProjectCard({
         existingLabelRegex: /\[zube\]:/,
         newLabel: `[zube]: ${zubeCategory}`,
       });
-      if (priority !== null) {
+      if (priority) {
         await addLabel({
           context,
           issue,
