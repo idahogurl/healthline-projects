@@ -1,4 +1,6 @@
 /* eslint-env jest, node */
+const { default: fetch } = require('../__mocks__/node-fetch');
+
 function spyOnObject(fileName, module) {
   const actual = jest.requireActual(fileName);
 
@@ -24,6 +26,19 @@ function mockContext(content) {
       warn: (x) => {
         console.warn(x);
       },
+    },
+    github: {
+      graphql: jest.fn(async (query, variables) => {
+        const response = await fetch(
+          {},
+          {
+            body: JSON.stringify({ query, variables }),
+          },
+        );
+        const body = response.body.toString('utf8');
+        const { data } = JSON.parse(body);
+        return data;
+      }),
     },
   };
 }

@@ -105,10 +105,10 @@ async function getProjectCardFromIssue(context, issueId) {
 async function getProjectCardDetails(context) {
   const { project_card: projectCardNode } = context.payload;
   // get column of project card
-  const { node: projectCard } = await context.github.graphql(GET_PROJECT_CARD_DETAILS, {
+  const details = await context.github.graphql(GET_PROJECT_CARD_DETAILS, {
     id: projectCardNode.node_id,
   });
-
+  const { node: projectCard } = details;
   // pull request being added to project do not have an issue
   if (projectCard.issue && projectCard.issue.id) {
     return projectCard;

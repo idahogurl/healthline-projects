@@ -1,6 +1,8 @@
 /* eslint-env jest */
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { Response, Headers } = jest.requireActual('node-fetch');
+const { cloneDeep } = require('lodash');
+
 const projectColumns = require('../test/fixtures/github/project-columns.json');
 const issue = require('../test/fixtures/github/issue.json');
 const issueDiffProject = require('../test/fixtures/github/issue-diff-project.json');
@@ -10,11 +12,14 @@ const issueNoCards = require('../test/fixtures/github/issue-no-cards.json');
 const issueLabels = require('../test/fixtures/github/issue-labels.json');
 const label = require('../test/fixtures/github/label.json');
 
-const issueFromCardSameLabel = { ...issue };
+const issueFromCardSameLabel = cloneDeep(issue);
 issueFromCardSameLabel.data.node.column.name = 'In Progress';
 
-const issueFromCardDiffLabel = { ...issue };
+const issueFromCardDiffLabel = cloneDeep(issue);
 issueFromCardDiffLabel.data.node.column.name = 'Next';
+
+const pullRequestMoved = cloneDeep(issue);
+delete pullRequestMoved.data.node.issue;
 
 const fixtures = {
   'query getProjectColumns': projectColumns,
@@ -24,6 +29,7 @@ const fixtures = {
     3: issueLabelNotFound,
     4: issueFromCardSameLabel,
     5: issueFromCardDiffLabel,
+    6: pullRequestMoved,
   },
   'query getProjectFromIssue': {
     1: issue,

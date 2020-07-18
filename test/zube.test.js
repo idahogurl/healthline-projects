@@ -99,7 +99,7 @@ test('getZubeCardDetails with no access jwt', async () => {
 test('moveZubeCard with different category', async () => {
   const didMove = await zube.moveZubeCard(mockContext({ payload: issueContext }), {
     column: {
-      name: 'Bob',
+      name: 'To Do',
       project: { name: 'Team Rocket' },
     },
     issue: issueContext.issue,
