@@ -6,7 +6,7 @@ const { cloneDeep } = require('lodash');
 const projectColumns = require('../test/fixtures/github/project-columns.json');
 const issue = require('../test/fixtures/github/issue.json');
 const issueDiffProject = require('../test/fixtures/github/issue-diff-project.json');
-const issueNoZube = require('../test/fixtures/github/issue-no-zube.json');
+const issueNoZubeLabel = require('../test/fixtures/github/issue-no-zube.json');
 const issueLabelNotFound = require('../test/fixtures/github/issue-label-not-found.json');
 const issueNoCards = require('../test/fixtures/github/issue-no-cards.json');
 const issueLabels = require('../test/fixtures/github/issue-labels.json');
@@ -18,28 +18,51 @@ issueFromCardSameLabel.data.node.column.name = 'In Progress';
 const issueFromCardDiffLabel = cloneDeep(issue);
 issueFromCardDiffLabel.data.node.column.name = 'Next';
 
+const issueNoMatchingColumn = cloneDeep(issue);
+issueNoMatchingColumn.data.node.column.name = 'Small';
+
 const pullRequestMoved = cloneDeep(issue);
 delete pullRequestMoved.data.node.issue;
 
+const noProjectColumns = cloneDeep(projectColumns);
+noProjectColumns.data.node.id = 2;
+noProjectColumns.data.node.projects.nodes = [];
+
+const noMatchingProjectColumns = cloneDeep(projectColumns);
+noMatchingProjectColumns.data.node.id = 3;
+const column = noMatchingProjectColumns.data.node.projects.nodes[0].columns.nodes.shift();
+noMatchingProjectColumns.data.node.projects.nodes[0].columns.nodes = [column];
+
+const issueNoMatchingProject = cloneDeep(issueDiffProject);
+issueNoMatchingProject.data.node.projectCards.nodes[0].project.name = 'Team Avengers';
+issueNoMatchingProject.data.node.issue.number = 9210;
+
 const fixtures = {
-  'query getProjectColumns': projectColumns,
+  'query getProjectColumns': {
+    1: projectColumns,
+    2: noProjectColumns,
+    3: noMatchingProjectColumns,
+  },
   'query getProjectCardDetails': {
     1: issue,
-    2: issueNoZube,
+    2: issueNoZubeLabel,
     3: issueLabelNotFound,
     4: issueFromCardSameLabel,
     5: issueFromCardDiffLabel,
     6: pullRequestMoved,
+    7: issueNoMatchingColumn,
   },
   'query getProjectFromIssue': {
     1: issue,
     2: issueNoCards,
     3: issueDiffProject,
+    4: issueNoMatchingProject,
   },
   'query getProjectCardFromIssue': {
     1: issue,
     2: issueNoCards,
     3: issueDiffProject,
+    4: issueNoMatchingProject,
   },
   'query getIssueLabels': {
     1: issueLabels,

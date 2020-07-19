@@ -1,4 +1,5 @@
 /* eslint-env jest, node */
+const { cloneDeep } = require('lodash');
 const zube = require('../data-access/zube');
 const zubeCard = require('./fixtures/zube/card.json');
 const issueContext = require('./fixtures/github/issues-opened.json');
@@ -77,7 +78,8 @@ test('updatePriority with different priority', async () => {
 });
 
 test('getZubeCardDetails with card not found', async () => {
-  const payload = { ...issueContext, issue: { ...issueContext.issue, title: 'Not found' } };
+  const payload = cloneDeep(issueContext);
+  payload.issue.title = 'Not found';
   const details = await zube.getZubeCardDetails(mockContext({ payload }), 'test');
   expect(details).toBeUndefined();
 });

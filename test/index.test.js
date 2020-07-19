@@ -2,6 +2,8 @@
 const { Probot } = require('probot');
 const fs = require('fs');
 const path = require('path');
+const { cloneDeep } = require('lodash');
+
 const zube = require('../data-access/zube');
 const projectCard = require('../data-access/project-card');
 const label = require('../data-access/label');
@@ -46,45 +48,106 @@ describe('My Probot app', () => {
 
   describe('issues.opened', () => {
     test('with Zube card', async () => {
-      const openedIssue = { ...issuesOpened, issue: { ...issuesOpened.issue } };
+      const openedIssue = cloneDeep(issuesOpened);
       openedIssue.issue.node_id = 2;
       await probot.receive({ name: 'issues', payload: openedIssue });
       expect(projectCard.addProjectCard).toHaveBeenCalled();
     });
 
     test('without Zube card', async () => {
-      const openedIssue = { ...issuesOpened, issue: { ...issuesOpened.issue } };
+      const openedIssue = cloneDeep(issuesOpened);
       openedIssue.issue.title = 'Not found';
       await probot.receive({ name: 'issues', payload: openedIssue });
+      expect(projectCard.addProjectCard).toHaveBeenCalledTimes(0);
+    });
+
+    test('no matching GitHub project', async () => {
+      const openedIssue = cloneDeep(issuesOpened);
+      openedIssue.issue.node_id = 2;
+      openedIssue.issue.title = 'Send GAM categories from article';
+      await probot.receive({ name: 'issues', payload: openedIssue });
+    });
+
+    test('no matching column', async () => {
+      const openedIssue = cloneDeep(issuesOpened);
+      openedIssue.issue.node_id = 2;
+      openedIssue.issue.title = 'Swoop ads not showing';
+      openedIssue.repository.node_id = 3;
+
+      await probot.receive({ name: 'issues', payload: openedIssue });
+    });
+
+    test('matching column', async () => {
+      const openedIssue = cloneDeep(issuesOpened);
+      openedIssue.issue.node_id = 2;
+      openedIssue.issue.title = 'Create AB test for black header';
+
+      await probot.receive({ name: 'issues', payload: openedIssue });
+      expect(projectCard.deleteProjectCard).toHaveBeenCalledTimes(0);
       expect(projectCard.addProjectCard).toHaveBeenCalledTimes(0);
     });
   });
 
   describe('issues.labeled', () => {
     test('with project cards', async () => {
-      const labeledIssue = { ...issuesLabeled, issue: { ...issuesLabeled.issue } };
+      const labeledIssue = cloneDeep(issuesLabeled);
       labeledIssue.issue.node_id = 1;
+
       await probot.receive({ name: 'issues', payload: labeledIssue });
       expect(projectCard.moveProjectCard).toHaveBeenCalled();
     });
 
     test('with no project cards', async () => {
-      const labeledIssue = { ...issuesLabeled, issue: { ...issuesLabeled.issue } };
+      const labeledIssue = cloneDeep(issuesLabeled);
       labeledIssue.issue.node_id = 2;
+
       await probot.receive({ name: 'issues', payload: labeledIssue });
       expect(projectCard.addProjectCard).toHaveBeenCalled();
     });
 
     test('with different project', async () => {
-      const labeledIssue = { ...issuesLabeled, issue: { ...issuesLabeled.issue } };
+      const labeledIssue = cloneDeep(issuesLabeled);
       labeledIssue.issue.node_id = 3;
+
       await probot.receive({ name: 'issues', payload: labeledIssue });
       expect(projectCard.deleteProjectCard).toHaveBeenCalled();
       expect(projectCard.addProjectCard).toHaveBeenCalled();
     });
 
+    test('no Zube workspace', async () => {
+      const labeledIssue = cloneDeep(issuesLabeled);
+      labeledIssue.issue.title = 'Send GAM categories from article';
+      labeledIssue.issue.node_id = 1;
+
+      await probot.receive({ name: 'issues', payload: labeledIssue });
+      expect(projectCard.deleteProjectCard).toHaveBeenCalled();
+      expect(projectCard.addProjectCard).toHaveBeenCalledTimes(0);
+    });
+
+    test('no matching GitHub project', async () => {
+      const labeledIssue = cloneDeep(issuesLabeled);
+      labeledIssue.issue.node_id = 3;
+      labeledIssue.repository.node_id = 2;
+
+      await probot.receive({ name: 'issues', payload: labeledIssue });
+      expect(projectCard.deleteProjectCard).toHaveBeenCalledTimes(0);
+      expect(projectCard.addProjectCard).toHaveBeenCalledTimes(0);
+    });
+
+    test('matching column', async () => {
+      const labeledIssue = cloneDeep(issuesLabeled);
+      labeledIssue.issue.node_id = 1;
+      labeledIssue.issue.title = 'Create AB test for black header';
+
+      await probot.receive({ name: 'issues', payload: labeledIssue });
+      expect(projectCard.deleteProjectCard).toHaveBeenCalledTimes(0);
+      expect(projectCard.addProjectCard).toHaveBeenCalledTimes(0);
+    });
+
     test('labeled with priority label', async () => {
-      const labeledIssuePriority = { ...issuesLabeled, label: { name: 'P5' } };
+      const labeledIssuePriority = cloneDeep(issuesLabeled);
+      labeledIssuePriority.label = { name: 'P5' };
+
       await probot.receive({ name: 'issues', payload: labeledIssuePriority });
       expect(zube.updatePriority).toHaveBeenCalled();
     });
@@ -92,70 +155,88 @@ describe('My Probot app', () => {
 
   describe('issues.unlabeled', () => {
     test('with project cards', async () => {
-      const unlabeledIssue = { ...issuesLabeled, issue: { ...issuesLabeled.issue } };
+      const unlabeledIssue = cloneDeep(issuesLabeled);
       unlabeledIssue.action = 'unlabeled';
       unlabeledIssue.issue.node_id = 1;
+
       await probot.receive({ name: 'issues', payload: unlabeledIssue });
       expect(projectCard.moveProjectCard).toHaveBeenCalled();
     });
 
-    test('with no project cards', async () => {
-      const unlabeledIssue = { ...issuesLabeled, issue: { ...issuesLabeled.issue } };
-      unlabeledIssue.action = 'unlabeled';
-      unlabeledIssue.issue.node_id = 2;
-      await probot.receive({ name: 'issues', payload: unlabeledIssue });
-      expect(projectCard.addProjectCard).toHaveBeenCalled();
-    });
+    test('labeled with priority label', async () => {
+      const labeledIssuePriority = cloneDeep(issuesLabeled);
+      labeledIssuePriority.label = { name: 'P5' };
+      labeledIssuePriority.action = 'unlabeled';
 
-    test('with different project', async () => {
-      const unlabeledIssue = { ...issuesLabeled, issue: { ...issuesLabeled.issue } };
-      unlabeledIssue.action = 'unlabeled';
-      unlabeledIssue.issue.node_id = 3;
-      await probot.receive({ name: 'issues', payload: unlabeledIssue });
-      expect(projectCard.deleteProjectCard).toHaveBeenCalled();
-      expect(projectCard.addProjectCard).toHaveBeenCalled();
+      await probot.receive({ name: 'issues', payload: labeledIssuePriority });
+      expect(zube.updatePriority).toHaveBeenCalledTimes(0);
     });
   });
 
   describe('project_card.created', () => {
     test('with no Zube label', async () => {
-      const createdProjectCard = { ...projectCardCreated, issue: { ...projectCardCreated.issue } };
+      const createdProjectCard = cloneDeep(projectCardCreated);
       createdProjectCard.project_card.node_id = 2;
+
       await probot.receive({ name: 'project_card', payload: createdProjectCard });
       expect(zube.moveZubeCard).toHaveBeenCalled();
     });
 
     test('has same Zube label', async () => {
-      const createdProjectCard = { ...projectCardCreated, issue: { ...projectCardCreated.issue } };
-      createdProjectCard.project_card.node_id = 2;
+      const createdProjectCard = cloneDeep(projectCardCreated);
+      createdProjectCard.project_card.node_id = 4;
+
       await probot.receive({ name: 'project_card', payload: createdProjectCard });
       expect(projectCard.moveProjectCard).toHaveBeenCalledTimes(0);
     });
 
     test('has different Zube label', async () => {
-      const createdProjectCard = { ...projectCardCreated, issue: { ...projectCardCreated.issue } };
-      createdProjectCard.project_card.node_id = 3;
-      // Zube label different than column
+      const createdProjectCard = cloneDeep(projectCardCreated);
+      createdProjectCard.project_card.node_id = 5;
+
       await probot.receive({ name: 'project_card', payload: createdProjectCard });
       expect(projectCard.moveProjectCard).toHaveBeenCalled();
+    });
+
+    test('no Zube card', async () => {
+      const createdProjectCard = cloneDeep(projectCardCreated);
+      createdProjectCard.project_card.node_id = 6;
+
+      await probot.receive({ name: 'project_card', payload: createdProjectCard });
+      expect(projectCard.moveProjectCard).toHaveBeenCalledTimes(0);
+    });
+
+    test('has Zube card which has no workspace', async () => {
+      const createdProjectCard = cloneDeep(projectCardCreated);
+      createdProjectCard.project_card.node_id = 6;
+
+      await probot.receive({ name: 'project_card', payload: createdProjectCard });
+      expect(projectCard.moveProjectCard).toHaveBeenCalledTimes(0);
     });
   });
 
   describe('project_card.moved', () => {
     test('no issue', async () => {
-      const movedProjectCard = {
-        ...projectCardMoved,
-        project_card: { ...projectCardMoved.project_card },
-      };
+      const movedProjectCard = cloneDeep(projectCardMoved);
       movedProjectCard.project_card.node_id = 6;
+
       await probot.receive({ name: 'project_card', payload: movedProjectCard });
       expect(label.addLabel).toHaveBeenCalledTimes(0);
     });
     test('with issue', async () => {
-      const movedProjectCard = { ...projectCardMoved };
+      const movedProjectCard = cloneDeep(projectCardMoved);
       movedProjectCard.project_card.node_id = 3;
+
       await probot.receive({ name: 'project_card', payload: movedProjectCard });
       expect(label.addLabel).toHaveBeenCalled();
+    });
+    test('no matching column', async () => {
+      const movedProjectCard = cloneDeep(projectCardMoved);
+      movedProjectCard.project_card.node_id = 7;
+
+      await probot.receive({ name: 'project_card', payload: movedProjectCard });
+      expect(projectCard.deleteProjectCard).toHaveBeenCalledTimes(0);
+      expect(projectCard.addProjectCard).toHaveBeenCalledTimes(0);
     });
   });
 

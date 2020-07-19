@@ -19,15 +19,10 @@ USE CASE
 When a user moves card in Zube:
 1. Adds Zube label to GitHub issue (fires issue.labeled event)
 */
-const {
-  deleteProjectCard,
-  moveProjectCard,
-  addProjectCard,
-} = require('../data-access/project-card');
 const { addLoggingToRequest } = require('../logger');
 const { getProjectFromIssue } = require('../data-access/project');
-const { getLabelingHandlerAction, LABELING_HANDLER_ACTIONS } = require('../label-actions-shared');
-const { getZubeCardDetails, updatePriority, getAccessJwt } = require('../data-access/zube');
+const { updatePriority, getAccessJwt } = require('../data-access/zube');
+const { handleLabelEvent } = require('../data-access/label');
 
 module.exports = async function onIssueLabeled(context) {
   // unlabeled is called before labeled
@@ -46,48 +41,7 @@ module.exports = async function onIssueLabeled(context) {
     context.log.info(`New label '${addedLabel.name}' added to Issue #${number}`);
     const { node } = await getProjectFromIssue({ context, issueId, number });
     const { nodes: projectCards } = node.projectCards;
-    const [projectCardNode] = projectCards;
-
-    const { zubeWorkspace, zubeCategory, priority } = await getZubeCardDetails(context);
-
-    if (projectCardNode) {
-      const { DELETE_CARD, MOVE_CARD_PROJECT, MOVE_CARD_COLUMN } = LABELING_HANDLER_ACTIONS;
-
-      const action = await getLabelingHandlerAction({
-        context,
-        zubeWorkspace,
-        gitHubProject: projectCardNode.project,
-        zubeCategory,
-        gitHubColumn: projectCardNode.column,
-      });
-
-      if (action === DELETE_CARD) {
-        await deleteProjectCard(context, projectCardNode.node_id);
-        context.log.info(
-          `Zube card unassigned from board. Project card deleted for issue #${number}`,
-        );
-      }
-
-      if (action === MOVE_CARD_COLUMN) {
-        await moveProjectCard({ context, projectCardNode, newColumn: addedLabel.name });
-        context.log.info(`Project card for issue #${number} is moved to ${addedLabel.name}`);
-      }
-
-      if (action === MOVE_CARD_PROJECT) {
-        await deleteProjectCard(context, projectCardNode.node_id);
-        await addProjectCard({ context, zubeWorkspace, zubeCategory });
-        context.log.info(
-          `Project card for issue #${number} is moved to ${zubeWorkspace}: ${zubeCategory}`,
-        );
-      }
-    } else {
-      await addProjectCard({
-        context,
-        zubeWorkspace,
-        zubeCategory,
-        priority,
-      });
-    }
+    await handleLabelEvent(context, projectCards);
   }
 
   // priority label?

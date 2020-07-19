@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 const { addLoggerStreams, onError } = require('./logger');
 const onIssueOpened = require('./event-handler/issue-opened');
 const onIssueLabeled = require('./event-handler/issue-labeled');

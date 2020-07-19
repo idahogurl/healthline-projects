@@ -20,7 +20,6 @@ module.exports = async function onIssueOpened(context) {
       zubeCategory,
       priority,
     });
-    context.log.info(`Project card for issue #${number} is added`);
   }
   // the destination GitHub project cannot be determined without a Zube card
 };

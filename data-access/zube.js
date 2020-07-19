@@ -35,6 +35,7 @@ async function zubeRequest(context, {
 
 async function getAccessJwt(context) {
   const clientId = process.env.ZUBE_CLIENT_ID;
+  /* istanbul ignore next */
   const privateKey = process.env.ENV === 'prod'
     ? process.env.ZUBE_PRIVATE_KEY
     : fs.readFileSync(process.env.ZUBE_PRIVATE_KEY_PATH, { encoding: 'utf8' });

@@ -24,7 +24,8 @@ async function addProjectCard({
     repository: { node_id: repoId },
   } = context.payload;
 
-  // Zube card without a workspace means card is in triage or a workspace without a matching GitHub project
+  // Zube card without a workspace means card is in triage
+  // or a workspace without a matching GitHub project
   if (zubeWorkspace) {
     const columns = await getColumnsByProjectName({
       context,
@@ -116,6 +117,7 @@ async function getProjectCardDetails(context) {
 }
 
 module.exports = {
+  getMatchingColumn,
   addProjectCard,
   deleteProjectCard,
   moveProjectCard,
