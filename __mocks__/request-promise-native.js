@@ -1,15 +1,8 @@
 /* eslint-env jest */
-const { cloneDeep } = require('lodash');
 const zubeCard = require('../test/fixtures/zube/card.json');
-
-const noWorkspace = cloneDeep(zubeCard);
-noWorkspace.data[0].workspace_id = null;
-
-const sameLabel = cloneDeep(zubeCard);
-sameLabel.data[0].category_name = 'In Progress';
-
-const noMatchingColumn = cloneDeep(zubeCard);
-noMatchingColumn.data[0].category_name = 'Small';
+const noWorkspace = require('../test/fixtures/zube/no-workspace.json');
+const sameLabel = require('../test/fixtures/zube/same-label.json');
+const noMatchingColumn = require('../test/fixtures/zube/no-matching-column.json');
 
 const fixtures = {
   'https://zube.io/api/projects/16987/cards': {
