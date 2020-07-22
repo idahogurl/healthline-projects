@@ -7,10 +7,10 @@
             {
               "id": "MDExOlByb2plY3RDYXJkMzkyMDc2MTE=",
               "column": {
-                "name": "In progress"
+                "name": "Next"
               },
               "project": {
-                "name": "Team Board",
+                "name": "Team Rocket",
                 "columns": {
                   "nodes": [
                     {
@@ -45,7 +45,7 @@
         },
         "column": {
           "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzIy",
-          "name": "Done",
+          "name": "Next",
           "project": {
             "id": "MDc6UHJvamVjdDQ2Mjc2NDQ=",
             "name": "Team Rocket"

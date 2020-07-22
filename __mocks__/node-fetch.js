@@ -1,29 +1,33 @@
 /* eslint-env jest */
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { Response, Headers } = jest.requireActual('node-fetch');
+
 const projectColumns = require('../test/fixtures/github/project-columns.json');
+const label = require('../test/fixtures/github/label.json');
+
 const issue = require('../test/fixtures/github/issue.json');
 const issueDiffProject = require('../test/fixtures/github/issue-diff-project.json');
-const issueNoZube = require('../test/fixtures/github/issue-no-zube.json');
+const issueNoZubeLabel = require('../test/fixtures/github/issue-no-zube.json');
 const issueLabelNotFound = require('../test/fixtures/github/issue-label-not-found.json');
 const issueNoCards = require('../test/fixtures/github/issue-no-cards.json');
 const issueLabels = require('../test/fixtures/github/issue-labels.json');
-const label = require('../test/fixtures/github/label.json');
-
-const issueFromCardSameLabel = { ...issue };
-issueFromCardSameLabel.data.node.column.name = 'In Progress';
-
-const issueFromCardDiffLabel = { ...issue };
-issueFromCardDiffLabel.data.node.column.name = 'Next';
+const issueFromCardSameLabel = require('../test/fixtures/github/issue-same-label.json');
+const issueFromCardDiffLabel = require('../test/fixtures/github/issue-diff-label.json');
+const pullRequestMoved = require('../test/fixtures/github/pull-request-moved.json');
+const noProjectColumns = require('../test/fixtures/github/no-project-columns.json');
 
 const fixtures = {
-  'query getProjectColumns': projectColumns,
-  'query getIssueFromProjectCard': {
+  'query getProjectColumns': {
+    1: projectColumns,
+    2: noProjectColumns,
+  },
+  'query getProjectCardDetails': {
     1: issue,
-    2: issueNoZube,
+    2: issueNoZubeLabel,
     3: issueLabelNotFound,
     4: issueFromCardSameLabel,
     5: issueFromCardDiffLabel,
+    6: pullRequestMoved,
   },
   'query getProjectFromIssue': {
     1: issue,
@@ -32,7 +36,8 @@ const fixtures = {
   },
   'query getProjectCardFromIssue': {
     1: issue,
-    2: issue,
+    2: issueNoCards,
+    3: issueDiffProject,
   },
   'query getIssueLabels': {
     1: issueLabels,

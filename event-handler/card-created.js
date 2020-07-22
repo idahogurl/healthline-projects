@@ -8,18 +8,13 @@ HANDLER LOGIC
 
     ELSE
 
-    a. Query zube for card
-    b. Query for categories in Zube
-    c. Move card to matching category in Zube
+    b. Move card to matching workspace & category in Zube
 */
 
-const {
-  getIssueFromCard,
-  moveZubeCard,
-  getColumnsByProjectName,
-  moveProjectCard,
-} = require('./shared');
-const { addLoggingToRequest } = require('./logger');
+const { getColumnsByProjectName } = require('../data-access/project');
+const { moveProjectCard, getProjectCardDetails } = require('../data-access/project-card');
+const { moveZubeCard } = require('../data-access/zube');
+const { addLoggingToRequest } = require('../logger');
 
 module.exports = async function onCardCreated(context) {
   addLoggingToRequest(context);
@@ -28,10 +23,11 @@ module.exports = async function onCardCreated(context) {
     repository: { node_id: repoId },
   } = context.payload;
 
-  const result = await getIssueFromCard(context, projectCardNode.node_id);
+  const projectCardDetails = await getProjectCardDetails(context, projectCardNode.node_id);
 
-  if (result) {
-    const { issue, column } = result;
+  if (projectCardDetails) {
+    // get the column & issue from event's project card
+    const { column, issue } = projectCardDetails;
     projectCardNode.column = column;
 
     const {
@@ -55,8 +51,9 @@ module.exports = async function onCardCreated(context) {
           projectColumns: columns,
         });
       }
+      return;
     }
-    // move from triage
-    return moveZubeCard(context, result);
+    // no Zube label means card was created in GitHub. Move Zube card from triage or other workspace
+    return moveZubeCard(context, projectCardDetails);
   }
 };

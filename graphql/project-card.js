@@ -1,5 +1,5 @@
-const GET_ISSUE_FROM_PROJECT_CARD = `
-query getIssueFromProjectCard($id: ID!) {
+const GET_PROJECT_CARD_DETAILS = `
+query getProjectCardDetails($id: ID!) {
   node(id: $id) {
     node_id: id
     ... on ProjectCard {
@@ -11,7 +11,7 @@ query getIssueFromProjectCard($id: ID!) {
           name
         }
       }
-      content {
+      content: issue {
         ... on Issue {
           id
           title
@@ -81,6 +81,6 @@ module.exports = {
   ADD_PROJECT_CARD,
   MOVE_PROJECT_CARD,
   DELETE_PROJECT_CARD,
-  GET_ISSUE_FROM_PROJECT_CARD,
+  GET_PROJECT_CARD_DETAILS,
   GET_PROJECT_CARD_FROM_ISSUE,
 };

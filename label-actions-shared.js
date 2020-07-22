@@ -1,5 +1,3 @@
-const { getColumnsByProjectName } = require('./shared');
-
 const LABELING_HANDLER_ACTIONS = {
   DELETE_CARD: 'delete-card',
   MOVE_CARD_PROJECT: 'move-card-project',
@@ -7,7 +5,6 @@ const LABELING_HANDLER_ACTIONS = {
 };
 
 async function getLabelingHandlerAction({
-  context,
   zubeWorkspace,
   gitHubProject,
   zubeCategory,
@@ -15,11 +12,13 @@ async function getLabelingHandlerAction({
 }) {
   const { DELETE_CARD, MOVE_CARD_PROJECT, MOVE_CARD_COLUMN } = LABELING_HANDLER_ACTIONS;
   if (!zubeWorkspace) {
+    // Zube card was moved to triage or workspace without a matching GitHub project
     return DELETE_CARD;
   }
 
   if (zubeWorkspace.name.toLowerCase() !== gitHubProject.name.toLowerCase()) {
-    // does the project exist is GitHub?
+    // Zube workspace changed
+    /*
     const {
       repository: { node_id: repoId },
     } = context.payload;
@@ -29,12 +28,14 @@ async function getLabelingHandlerAction({
       projectName: zubeWorkspace.name,
     });
     if (columns.length) {
-      return MOVE_CARD_PROJECT;
-    }
-    return DELETE_CARD;
+    */
+    // The matching GitHub project will ALWAYS have columns
+    return MOVE_CARD_PROJECT;
   }
 
   if (gitHubColumn && zubeCategory.toLowerCase() !== gitHubColumn.name.toLowerCase()) {
+    // Zube card was moved to a category (aka column) that matches a GitHub project
+    // column in its current GitHub project
     return MOVE_CARD_COLUMN;
   }
 }

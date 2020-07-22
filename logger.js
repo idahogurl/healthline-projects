@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 const bunyan = require('bunyan');
 const Bunyan2Loggly = require('bunyan-loggly');
 const Rollbar = require('rollbar');
