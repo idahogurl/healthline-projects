@@ -5,8 +5,9 @@ const projectCardMoved = require('./fixtures/github/events/project-card-moved.js
 const projectColumns = require('./fixtures/github/project-columns.json');
 
 describe('addProjectCard', () => {
+  const context = mockContext({ payload: { issue: {}, repository: { node_id: 1 } } });
+
   test('has Zube card without a workspace', async () => {
-    const context = mockContext({ payload: { issue: {}, repository: { node_id: 1 } } });
     const didAdd = await projectCard.addProjectCard({
       context,
     });
@@ -14,7 +15,6 @@ describe('addProjectCard', () => {
   });
 
   test('no matching column', async () => {
-    const context = mockContext({ payload: { issue: {}, repository: { node_id: 1 } } });
     const didAdd = await projectCard.addProjectCard({
       context,
       zubeWorkspace: { name: 'Team Rocket' },
