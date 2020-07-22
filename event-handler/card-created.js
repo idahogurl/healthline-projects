@@ -51,8 +51,9 @@ module.exports = async function onCardCreated(context) {
           projectColumns: columns,
         });
       }
+      return;
     }
-    // move from triage or other Zube workspace
+    // no Zube label means card was created in GitHub. Move Zube card from triage or other workspace
     return moveZubeCard(context, projectCardDetails);
   }
 };

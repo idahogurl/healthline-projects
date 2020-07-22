@@ -18,20 +18,12 @@ issueFromCardSameLabel.data.node.column.name = 'In Progress';
 const issueFromCardDiffLabel = cloneDeep(issue);
 issueFromCardDiffLabel.data.node.column.name = 'Next';
 
-const issueNoMatchingColumn = cloneDeep(issue);
-issueNoMatchingColumn.data.node.column.name = 'Small';
-
 const pullRequestMoved = cloneDeep(issue);
 delete pullRequestMoved.data.node.issue;
 
 const noProjectColumns = cloneDeep(projectColumns);
 noProjectColumns.data.node.id = 2;
 noProjectColumns.data.node.projects.nodes = [];
-
-const noMatchingProjectColumns = cloneDeep(projectColumns);
-noMatchingProjectColumns.data.node.id = 3;
-const column = noMatchingProjectColumns.data.node.projects.nodes[0].columns.nodes.shift();
-noMatchingProjectColumns.data.node.projects.nodes[0].columns.nodes = [column];
 
 const issueNoMatchingProject = cloneDeep(issueDiffProject);
 issueNoMatchingProject.data.node.projectCards.nodes[0].project.name = 'Team Avengers';
@@ -41,7 +33,7 @@ const fixtures = {
   'query getProjectColumns': {
     1: projectColumns,
     2: noProjectColumns,
-    3: noMatchingProjectColumns,
+    // 3: noMatchingProjectColumns,
   },
   'query getProjectCardDetails': {
     1: issue,
@@ -50,7 +42,6 @@ const fixtures = {
     4: issueFromCardSameLabel,
     5: issueFromCardDiffLabel,
     6: pullRequestMoved,
-    7: issueNoMatchingColumn,
   },
   'query getProjectFromIssue': {
     1: issue,

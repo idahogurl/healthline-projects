@@ -6,9 +6,6 @@ module.exports = async function onIssueOpened(context) {
   // unlabeled is called before labeled
   // IF NOT locked
   addLoggingToRequest(context);
-  const {
-    issue: { number },
-  } = context;
   const details = await getZubeCardDetails(context);
   if (details) {
     // issue opened by Zube

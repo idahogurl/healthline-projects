@@ -92,7 +92,6 @@ async function handleLabelEvent(context, projectCards) {
     });
 
     if (action === DELETE_CARD) {
-      // Line 97 needs coverage
       await deleteProjectCard(context, projectCardNode.node_id);
       context.log.info(
         `Zube card unassigned from board. Project card deleted for issue #${number}`,

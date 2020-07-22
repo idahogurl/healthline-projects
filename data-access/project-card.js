@@ -10,6 +10,8 @@ const { addLabel, getIssueLabels } = require('./label');
 
 function getMatchingColumn({ columns, newColumn, currentColumn }) {
   const newColumnName = newColumn.toLowerCase().replace('[zube]: ', '');
+  // fail safe for future use even though handleLabelEvent() & onProjectCardCreated()
+  // both do this check
   if (currentColumn && newColumnName === currentColumn.toLowerCase()) {
     // card already in new column
   }
@@ -78,7 +80,8 @@ async function deleteProjectCard(context, cardId) {
 async function moveProjectCard({
   context, projectCardNode, newColumn, projectColumns = [],
 }) {
-  const { node_id: cardId, column, project } = projectCardNode;
+  const { node_id: cardId, column } = projectCardNode;
+  const { project } = column;
   const columns = (project && project.columns && project.columns.nodes) || projectColumns;
   // find column in GitHub project that matches Zube label
   const matchingColumn = getMatchingColumn({

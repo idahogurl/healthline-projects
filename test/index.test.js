@@ -60,6 +60,22 @@ describe('My Probot app', () => {
       await probot.receive({ name: 'issues', payload: openedIssue });
       expect(projectCard.addProjectCard).toHaveBeenCalledTimes(0);
     });
+
+    test('no Zube workspace', async () => {
+      const openedIssue = cloneDeep(issuesOpened);
+      openedIssue.issue.title = 'Send GAM categories from article';
+      openedIssue.issue.node_id = 1;
+
+      await probot.receive({ name: 'issues', payload: openedIssue });
+    });
+
+    test('no matching column', async () => {
+      const openedIssue = cloneDeep(issuesOpened);
+      openedIssue.issue.title = 'Swap Swoop and INA ad positions';
+      openedIssue.issue.node_id = 1;
+
+      await probot.receive({ name: 'issues', payload: openedIssue });
+    });
   });
 
   describe('issues.labeled', () => {
@@ -106,7 +122,6 @@ describe('My Probot app', () => {
       expect(zube.updatePriority).toHaveBeenCalled();
     });
 
-    // line 36 label-actions-shared.js
     test('with same column', async () => {
       const labeledIssue = cloneDeep(issuesLabeled);
       labeledIssue.issue.title = 'Create AB test for black header';
@@ -187,20 +202,13 @@ describe('My Probot app', () => {
       await probot.receive({ name: 'project_card', payload: movedProjectCard });
       expect(label.addLabel).toHaveBeenCalledTimes(0);
     });
+
     test('with issue', async () => {
       const movedProjectCard = cloneDeep(projectCardMoved);
       movedProjectCard.project_card.node_id = 3;
 
       await probot.receive({ name: 'project_card', payload: movedProjectCard });
       expect(label.addLabel).toHaveBeenCalled();
-    });
-    test('no matching column', async () => {
-      const movedProjectCard = cloneDeep(projectCardMoved);
-      movedProjectCard.project_card.node_id = 7;
-
-      await probot.receive({ name: 'project_card', payload: movedProjectCard });
-      expect(projectCard.deleteProjectCard).toHaveBeenCalledTimes(0);
-      expect(projectCard.addProjectCard).toHaveBeenCalledTimes(0);
     });
   });
 
