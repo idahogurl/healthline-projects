@@ -4,7 +4,7 @@ const { cloneDeep } = require('lodash');
 const label = require('../data-access/label');
 const projectCard = require('../data-access/project-card');
 const { mockContext } = require('./utils');
-const projectCardMoved = require('./fixtures/github/project-card-moved.json');
+const projectCardMoved = require('./fixtures/github/events/project-card-moved.json');
 
 describe('addLabel', () => {
   test('with label not found', async () => {

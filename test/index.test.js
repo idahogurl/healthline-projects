@@ -16,10 +16,10 @@ require('dotenv').config();
 // Requiring our app implementation
 const myProbotApp = require('..');
 // Requiring our fixtures
-const projectCardCreated = require('./fixtures/github/project-card-created.json');
-const projectCardMoved = require('./fixtures/github/project-card-moved.json');
-const issuesLabeled = require('./fixtures/github/issues-labeled.json');
-const issuesOpened = require('./fixtures/github/issues-opened.json');
+const projectCardCreated = require('./fixtures/github/events/project-card-created.json');
+const projectCardMoved = require('./fixtures/github/events/project-card-moved.json');
+const issuesLabeled = require('./fixtures/github/events/issues-labeled.json');
+const issuesOpened = require('./fixtures/github/events/issues-opened.json');
 const { spyOnObject } = require('./utils');
 
 jest.setTimeout(20000); // 1 second

@@ -1,0 +1,56 @@
+{
+    "data": {
+      "node": {
+        "id": "MDU6SXNzdWU2Mjc4MDQ0ODE=",
+        "projectCards": {
+          "nodes": [
+            {
+              "id": "MDExOlByb2plY3RDYXJkMzkyMDc2MTE=",
+              "column": {
+                "name": "In progress"
+              },
+              "project": {
+                "name": "Team Rocket",
+                "columns": {
+                  "nodes": [
+                    {
+                        "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzIx",
+                        "name": "Inbox"
+                      },
+                      {
+                        "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzIa",
+                        "name": "Next"
+                      },
+                      {
+                        "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzIy",
+                        "name": "In progress"
+                      },
+                      {
+                        "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzIz",
+                        "name": "In review"
+                      },
+                      {
+                        "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzI0",
+                        "name": "Reviewer approved"
+                      },
+                      {
+                        "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzI1",
+                        "name": "Done"
+                      }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "column": {
+          "id": "MDEzOlByb2plY3RDb2x1bW45NDE1MzIy",
+          "name": "Done",
+          "project": {
+            "id": "MDc6UHJvamVjdDQ2Mjc2NDQ=",
+            "name": "Team Rocket"
+          }
+        }
+      }
+    }
+  }

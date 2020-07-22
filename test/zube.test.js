@@ -2,7 +2,7 @@
 const { cloneDeep } = require('lodash');
 const zube = require('../data-access/zube');
 const zubeCard = require('./fixtures/zube/card.json');
-const issueContext = require('./fixtures/github/issues-opened.json');
+const issueContext = require('./fixtures/github/events/issues-opened.json');
 const { mockContext, spyOnObject } = require('./utils');
 
 jest.mock('../data-access/zube');
