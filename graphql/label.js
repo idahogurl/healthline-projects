@@ -16,7 +16,7 @@ query getIssueLabels($id: ID!) {
 
 const GET_LABEL = `
 query getLabel($name: String!, $owner: String!, $search: String!) {
-repository(name: $name, owner: $owner) {
+  repository(name: $name, owner: $owner) {
     labels(query: $search, first: 1) {
       nodes {
         id
