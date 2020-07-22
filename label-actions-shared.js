@@ -1,5 +1,3 @@
-const { getColumnsByProjectName } = require('./data-access/project');
-
 const LABELING_HANDLER_ACTIONS = {
   DELETE_CARD: 'delete-card',
   MOVE_CARD_PROJECT: 'move-card-project',
@@ -7,7 +5,6 @@ const LABELING_HANDLER_ACTIONS = {
 };
 
 async function getLabelingHandlerAction({
-  context,
   zubeWorkspace,
   gitHubProject,
   zubeCategory,
@@ -21,6 +18,7 @@ async function getLabelingHandlerAction({
 
   if (zubeWorkspace.name.toLowerCase() !== gitHubProject.name.toLowerCase()) {
     // Zube workspace changed
+    /*
     const {
       repository: { node_id: repoId },
     } = context.payload;
@@ -30,9 +28,9 @@ async function getLabelingHandlerAction({
       projectName: zubeWorkspace.name,
     });
     if (columns.length) {
-      // Zube card was moved to a workspace that matches a GitHub project
-      return MOVE_CARD_PROJECT;
-    }
+    */
+    // The matching GitHub project will ALWAYS have columns
+    return MOVE_CARD_PROJECT;
   }
 
   if (gitHubColumn && zubeCategory.toLowerCase() !== gitHubColumn.name.toLowerCase()) {

@@ -85,7 +85,6 @@ async function handleLabelEvent(context, projectCards) {
     const { DELETE_CARD, MOVE_CARD_PROJECT, MOVE_CARD_COLUMN } = LABELING_HANDLER_ACTIONS;
 
     const action = await getLabelingHandlerAction({
-      context,
       zubeWorkspace,
       gitHubProject: projectCardNode.project,
       zubeCategory,

@@ -60,30 +60,6 @@ describe('My Probot app', () => {
       await probot.receive({ name: 'issues', payload: openedIssue });
       expect(projectCard.addProjectCard).toHaveBeenCalledTimes(0);
     });
-
-    // test('no matching GitHub project', async () => {
-    //   const openedIssue = cloneDeep(issuesOpened);
-    //   openedIssue.issue.node_id = 2;
-    //   openedIssue.issue.title = 'Send GAM categories from article';
-    //   await probot.receive({ name: 'issues', payload: openedIssue });
-    // });
-
-    // test('no matching column', async () => {
-    //   const openedIssue = cloneDeep(issuesOpened);
-    //   openedIssue.issue.node_id = 2;
-    //   openedIssue.issue.title = 'Swoop ads not showing';
-    //   openedIssue.repository.node_id = 3;
-
-    //   await probot.receive({ name: 'issues', payload: openedIssue });
-    // });
-
-    // test('matching column', async () => {
-    //   const openedIssue = cloneDeep(issuesOpened);
-    //   openedIssue.issue.node_id = 2;
-    //   openedIssue.issue.title = 'Create AB test for black header';
-
-    //   await probot.receive({ name: 'issues', payload: openedIssue });
-    // });
   });
 
   describe('issues.labeled', () => {
@@ -122,32 +98,22 @@ describe('My Probot app', () => {
       expect(projectCard.addProjectCard).toHaveBeenCalledTimes(0);
     });
 
-    // test('no matching GitHub project', async () => {
-    //   const labeledIssue = cloneDeep(issuesLabeled);
-    //   labeledIssue.issue.node_id = 3;
-    //   labeledIssue.repository.node_id = 2;
-
-    //   await probot.receive({ name: 'issues', payload: labeledIssue });
-    //   expect(projectCard.deleteProjectCard).toHaveBeenCalledTimes(0);
-    //   expect(projectCard.addProjectCard).toHaveBeenCalledTimes(0);
-    // });
-
-    // test('matching column', async () => {
-    //   const labeledIssue = cloneDeep(issuesLabeled);
-    //   labeledIssue.issue.node_id = 1;
-    //   labeledIssue.issue.title = 'Create AB test for black header';
-
-    //   await probot.receive({ name: 'issues', payload: labeledIssue });
-    //   expect(projectCard.deleteProjectCard).toHaveBeenCalledTimes(0);
-    //   expect(projectCard.addProjectCard).toHaveBeenCalledTimes(0);
-    // });
-
     test('labeled with priority label', async () => {
       const labeledIssuePriority = cloneDeep(issuesLabeled);
       labeledIssuePriority.label = { name: 'P5' };
 
       await probot.receive({ name: 'issues', payload: labeledIssuePriority });
       expect(zube.updatePriority).toHaveBeenCalled();
+    });
+
+    // line 36 label-actions-shared.js
+    test('with same column', async () => {
+      const labeledIssue = cloneDeep(issuesLabeled);
+      labeledIssue.issue.title = 'Create AB test for black header';
+      labeledIssue.issue.node_id = 1;
+      await probot.receive({ name: 'issues', payload: labeledIssue });
+      expect(projectCard.deleteProjectCard).toHaveBeenCalledTimes(0);
+      expect(projectCard.addProjectCard).toHaveBeenCalledTimes(0);
     });
   });
 

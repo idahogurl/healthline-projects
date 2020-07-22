@@ -63,6 +63,8 @@ const fixtures = {
     2: issueNoCards,
     3: issueDiffProject,
     4: issueNoMatchingProject,
+    5: issueFromCardSameLabel,
+    6: issueFromCardDiffLabel,
   },
   'query getIssueLabels': {
     1: issueLabels,
