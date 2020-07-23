@@ -22,7 +22,7 @@ When a user moves card in Zube:
 const { addLoggingToRequest } = require('../logger');
 const { getProjectFromIssue } = require('../data-access/project');
 const { updatePriority, getAccessJwt } = require('../data-access/zube');
-const { handleLabelEvent } = require('../data-access/label');
+const onIssueLabeling = require('./issue-label-event');
 
 module.exports = async function onIssueLabeled(context) {
   // unlabeled is called before labeled
@@ -41,7 +41,7 @@ module.exports = async function onIssueLabeled(context) {
     context.log.info(`New label '${addedLabel.name}' added to Issue #${number}`);
     const { node } = await getProjectFromIssue({ context, issueId, number });
     const { nodes: projectCards } = node.projectCards;
-    await handleLabelEvent(context, projectCards);
+    await onIssueLabeling(context, projectCards);
   }
 
   // priority label?

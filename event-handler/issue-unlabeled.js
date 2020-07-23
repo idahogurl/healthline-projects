@@ -1,6 +1,6 @@
 const { addLoggingToRequest } = require('../logger');
 const { getProjectCardFromIssue } = require('../data-access/project-card');
-const { handleLabelEvent } = require('../data-access/label');
+const onIssueLabeling = require('./issue-label-event');
 
 module.exports = async function onIssueUnlabeled(context) {
   addLoggingToRequest(context);
@@ -17,6 +17,6 @@ module.exports = async function onIssueUnlabeled(context) {
       },
     } = await getProjectCardFromIssue(context, id);
 
-    await handleLabelEvent(context, projectCards);
+    await onIssueLabeling(context, projectCards);
   }
 };
